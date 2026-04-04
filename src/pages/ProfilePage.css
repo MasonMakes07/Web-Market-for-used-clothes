@@ -1,0 +1,233 @@
+/* ProfilePage */
+
+.profile {
+  max-width: 900px;
+  margin: 0 auto;
+  padding-bottom: 48px;
+}
+
+/* ── Cover photo ────────────────────────────────────────────────────────────── */
+
+.profile-cover {
+  width: 100%;
+  height: 200px;
+  background: var(--ucsd-navy);
+  overflow: hidden;
+}
+
+.profile-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-cover-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--ucsd-navy) 60%, var(--ucsd-gold));
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────────── */
+
+.profile-header {
+  display: flex;
+  align-items: flex-end;
+  gap: 20px;
+  padding: 0 24px 20px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.profile-avatar-wrap {
+  margin-top: -48px;
+  flex-shrink: 0;
+}
+
+.profile-avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.profile-header-info {
+  flex: 1;
+  min-width: 0;
+  padding-bottom: 4px;
+}
+
+.profile-name-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.profile-name {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text-h);
+  margin: 0;
+}
+
+.profile-college-logo {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.profile-rating {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0;
+}
+
+.profile-stars {
+  color: var(--ucsd-gold);
+  font-size: 16px;
+  letter-spacing: 1px;
+}
+
+.profile-rating-score {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text-h);
+}
+
+.profile-rating-count {
+  font-size: 13px;
+  color: #999;
+}
+
+.profile-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #777;
+  flex-wrap: wrap;
+}
+
+/* Action buttons */
+.profile-actions {
+  display: flex;
+  gap: 10px;
+  padding-bottom: 4px;
+  flex-shrink: 0;
+}
+
+.profile-btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.profile-btn--primary {
+  background: var(--ucsd-navy);
+  color: #fff;
+}
+
+.profile-btn--primary:hover {
+  background: #0f1e35;
+}
+
+.profile-btn--secondary {
+  background: #f0f0f0;
+  color: var(--text-h);
+  border: 1px solid var(--border);
+}
+
+.profile-btn--secondary:hover {
+  background: #e4e4e4;
+}
+
+/* ── Sections ────────────────────────────────────────────────────────────────── */
+
+.profile-section {
+  padding: 24px 24px 0;
+}
+
+.profile-section-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-h);
+  margin: 0 0 12px;
+}
+
+.profile-bio {
+  font-size: 15px;
+  color: var(--text);
+  line-height: 1.6;
+}
+
+/* Meetup spot badges */
+.profile-spots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.profile-spot-badge {
+  background: rgba(24, 43, 73, 0.08);
+  color: var(--ucsd-navy);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 20px;
+}
+
+/* Listings grid */
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+@media (max-width: 850px) {
+  .profile-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .profile-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.profile-show-more {
+  display: block;
+  margin: 16px auto 0;
+  padding: 10px 24px;
+  border: 1.5px solid var(--ucsd-navy);
+  background: transparent;
+  color: var(--ucsd-navy);
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.profile-show-more:hover {
+  background: var(--ucsd-navy);
+  color: #fff;
+}
+
+.profile-empty {
+  color: #999;
+  font-size: 15px;
+}
+
+.profile-not-found {
+  text-align: center;
+  color: #999;
+  padding: 48px;
+}

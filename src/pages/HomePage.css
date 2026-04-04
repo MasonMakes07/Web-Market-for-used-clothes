@@ -1,0 +1,56 @@
+/* HomePage — search bar + listing grid */
+
+.home {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+/* Search bar */
+.home-search-wrap {
+  margin-bottom: 24px;
+}
+
+.home-search {
+  width: 100%;
+  padding: 12px 18px;
+  font-size: 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  outline: none;
+  font-family: var(--sans);
+  background: #fff;
+  transition: border-color 0.15s;
+}
+
+.home-search:focus {
+  border-color: var(--ucsd-navy);
+}
+
+/* Grid — 4 columns, responsive */
+.home-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .home-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .home-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}
+
+/* Empty state */
+.home-empty {
+  text-align: center;
+  color: #999;
+  margin-top: 48px;
+  font-size: 16px;
+}
