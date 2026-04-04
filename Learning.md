@@ -25,3 +25,9 @@ Every `update` and `delete` query must include `.eq("seller_id", userId)` so use
 
 ## Lesson 8: Stale response protection on async fetches
 When multiple fetches can fire (rapid clicks, re-renders), use a `fetchIdRef` counter so only the latest response updates state. Otherwise older responses can overwrite newer data.
+
+## Lesson 9: Validate IDs before interpolating into Supabase .or() filters
+Supabase's `.or()` method takes a raw filter string. If user-controlled IDs are interpolated without validation, an attacker can inject filter syntax to alter the query and access unauthorized data. Always validate IDs match a safe pattern (e.g., `/^[\w|:-]+$/`) before interpolation.
+
+## Lesson 10: Use separate fetchIdRefs for independent fetch operations
+If two independent async operations (e.g., fetchConversations and fetchMessages) share one fetchIdRef, one operation can cancel the other's response. Each independent fetch needs its own counter ref.
