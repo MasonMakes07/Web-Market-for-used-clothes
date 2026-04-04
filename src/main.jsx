@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { Auth0ProviderWithConfig } from './lib/auth0.jsx'
 import { AuthProvider } from './hooks/useAuth.jsx'
+import { ListingsProvider } from './hooks/useListings.jsx'
+import { MessagesProvider } from './hooks/useMessages.jsx'
 import './index.css'
 import App from './App.jsx'
 
@@ -11,7 +13,11 @@ createRoot(document.getElementById('root')).render(
     <BrowserRouter>
       <Auth0ProviderWithConfig>
         <AuthProvider>
-          <App />
+          <ListingsProvider>
+            <MessagesProvider>
+              <App />
+            </MessagesProvider>
+          </ListingsProvider>
         </AuthProvider>
       </Auth0ProviderWithConfig>
     </BrowserRouter>
