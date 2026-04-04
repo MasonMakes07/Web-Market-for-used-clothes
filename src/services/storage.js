@@ -36,6 +36,7 @@ export async function uploadAvatar(userId, file) {
   validateFile(file);
 
   if (!supabase) throw new Error("Supabase client not initialized.");
+  if (!userId) throw new Error("User ID is required for avatar upload.");
 
   const path = `${userId}/${safeName(file.name)}`;
   const { error } = await supabase.storage
