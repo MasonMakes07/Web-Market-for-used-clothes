@@ -2,23 +2,73 @@
  * storage.js
  * Service layer for file uploads to Supabase Storage.
  * Handles uploading and retrieving profile avatars and listing images.
+ * Validates file type and size before uploading.
  */
 
-// TODO: Implement Supabase Storage uploads
+import { supabase } from "../lib/supabase.js";
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+
+// Validates file type and size before upload
+function validateFile(file) {
+  if (!file) {
+    throw new Error("No file provided.");
+  }
+  if (!ALLOWED_TYPES.includes(file.type)) {
+    throw new Error("Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed.");
+  }
+  if (file.size > MAX_FILE_SIZE) {
+    throw new Error("File too large. Maximum size is 5MB.");
+  }
+}
+
+// Generates a safe filename using a timestamp and random string
+function safeName(originalName) {
+  const ext = originalName.split(".").pop().toLowerCase().replace(/[^a-z0-9]/g, "");
+  const timestamp = Date.now();
+  const rand = Math.random().toString(36).slice(2, 8);
+  return `${timestamp}-${rand}.${ext}`;
+}
 
 // Uploads a profile avatar and returns the public URL
-// TODO: Validate file type (allow only image/*), max size (5MB), sanitize filename
 export async function uploadAvatar(userId, file) {
-  return null;
+  validateFile(file);
+
+  if (!supabase) throw new Error("Supabase client not initialized.");
+
+  const path = `${userId}/${safeName(file.name)}`;
+  const { error } = await supabase.storage
+    .from("avatars")
+    .upload(path, file, { upsert: true });
+
+  if (error) throw new Error(`Avatar upload failed: ${error.message}`);
+
+  return getPublicUrl("avatars", path);
 }
 
 // Uploads a listing image and returns the public URL
-// TODO: Validate file type (allow only image/*), max size (5MB), sanitize filename
-export async function uploadListingImage(listingId, file) {
-  return null;
+// Uses userId as the folder since listingId may not exist yet at upload time
+export async function uploadListingImage(userId, file) {
+  validateFile(file);
+
+  if (!supabase) throw new Error("Supabase client not initialized.");
+  if (!userId) throw new Error("User ID is required for image upload.");
+
+  const path = `${userId}/${safeName(file.name)}`;
+  const { error } = await supabase.storage
+    .from("listing-images")
+    .upload(path, file, { upsert: true });
+
+  if (error) throw new Error(`Listing image upload failed: ${error.message}`);
+
+  return getPublicUrl("listing-images", path);
 }
 
 // Gets the public URL for a stored file
 export function getPublicUrl(bucket, path) {
-  return "";
+  if (!supabase) return "";
+
+  const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+  return data?.publicUrl || "";
 }
