@@ -1,0 +1,55 @@
+/* UserBar — clickable seller info strip */
+
+.userbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  background: #f9f9f9;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.userbar:hover {
+  background: #f0f0f0;
+}
+
+.userbar-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.userbar-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.userbar-name {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text-h);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userbar-college {
+  font-size: 13px;
+  color: #777;
+}
+
+.userbar-rating {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ucsd-gold);
+  white-space: nowrap;
+}

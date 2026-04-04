@@ -1,0 +1,29 @@
+/* Layout — hero + sticky navbar + page content */
+
+.layout {
+  display: flex;
+  flex-direction: column;
+  height: 100svh;
+  overflow-y: auto; /* makes this the scroll container so position:sticky on NavBar works */
+}
+
+/* ── Hero ──────────────────────────────────────────────────────────────────── */
+
+.hero {
+  width: 100%;
+  line-height: 0;
+}
+
+.hero-image {
+  width: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+/* ── Main content area ─────────────────────────────────────────────────────── */
+
+.layout-main {
+  flex: 1;
+  padding: 24px 32px;
+  background-color: var(--bg);
+}
