@@ -8,30 +8,15 @@
 import NavBar from "./NavBar.jsx";
 import "./Layout.css";
 
-// Hero section with the Triton Thrift logo and Geisel Library illustration
+// Hero section — full-width banner image
 function Hero() {
   return (
     <header className="hero">
-      <div className="hero-corners">
-        <span className="hero-corner hero-corner--left" />
-        <span className="hero-corner hero-corner--right" />
-      </div>
-
-      <div className="hero-content">
-        <span className="hero-title hero-title--left">TRITON</span>
-
-        {/* Replace src with the actual Geisel illustration asset when available */}
-        <div className="hero-logo">
-          <img
-            src="/geisel.png"
-            alt="Geisel Library"
-            className="hero-geisel"
-            onError={(e) => { e.currentTarget.style.display = "none"; }}
-          />
-        </div>
-
-        <span className="hero-title hero-title--right">THRIFT</span>
-      </div>
+      <img
+        src="/Triton Thrift Hero.png"
+        alt="Triton Thrift"
+        className="hero-image"
+      />
     </header>
   );
 }
