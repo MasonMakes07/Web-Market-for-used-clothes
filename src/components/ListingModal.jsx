@@ -9,6 +9,7 @@ import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth.jsx";
 import UserBar from "./UserBar.jsx";
+import { getCollegeLogo } from "../lib/colleges.js";
 import "./ListingModal.css";
 
 export default function ListingModal({ listing, onClose }) {
@@ -75,6 +76,18 @@ export default function ListingModal({ listing, onClose }) {
             {listing.category && <span className="modal-badge">{listing.category}</span>}
             {listing.condition && <span className="modal-badge modal-badge--condition">{listing.condition}</span>}
           </div>
+
+          {/* College logo — replaces map */}
+          {listing.seller?.college && getCollegeLogo(listing.seller.college) && (
+            <div className="modal-college">
+              <img
+                src={getCollegeLogo(listing.seller.college)}
+                alt={listing.seller.college}
+                className="modal-college-logo"
+              />
+              <span className="modal-college-name">{listing.seller.college} College</span>
+            </div>
+          )}
 
           {listing.description && (
             <p className="modal-description">{listing.description}</p>

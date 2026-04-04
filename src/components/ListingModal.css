@@ -106,6 +106,26 @@
   color: #2e7d32;
 }
 
+/* College logo location block */
+.modal-college {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-college-logo {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
+.modal-college-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
 .modal-description {
   font-size: 14px;
   color: var(--text);
