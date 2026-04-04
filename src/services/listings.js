@@ -94,7 +94,7 @@ export async function saveDraft(userId, draftData) {
     .from("listings")
     .insert({
       title: sanitized.title || null,
-      price: sanitized.price || null,
+      price: sanitized.price ?? null,
       category: sanitized.category || null,
       condition: sanitized.condition || null,
       description: sanitized.description || null,

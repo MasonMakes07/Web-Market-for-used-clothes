@@ -21,6 +21,12 @@ dist-ssr
 .env.staging
 
 
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
