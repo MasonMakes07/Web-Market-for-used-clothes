@@ -2,7 +2,12 @@
   "permissions": {
     "allow": [
       "Bash(git checkout:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Bash(gh issue:*)",
+      "Bash(cp -r temp-scaffold/* .)",
+      "Bash(cp temp-scaffold/.gitignore .gitignore)",
+      "Bash(rm -rf temp-scaffold)",
+      "Bash(npm install:*)"
     ]
   }
 }
