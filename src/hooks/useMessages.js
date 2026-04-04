@@ -17,7 +17,7 @@ import {
   markThreadAsRead,
   getUnreadCount,
 } from "../services/messages.js";
-import { useAuth } from "./useAuth.js";
+import { useAuth } from "./useAuth.jsx";
 
 const MessagesContext = createContext(null);
 

@@ -5,7 +5,7 @@
  */
 
 import { Routes, Route, Navigate } from "react-router-dom";
-import { useAuth } from "./hooks/useAuth.js";
+import { useAuth } from "./hooks/useAuth.jsx";
 import "./App.css";
 
 // Placeholder page — will be replaced by alexgilbreath's HomePage component
