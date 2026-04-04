@@ -51,6 +51,25 @@ export default function NavBar() {
       <button className="nav-btn" onClick={() => goTo("/messages")}>
         Messages
       </button>
+
+      {/* Login / avatar — right side */}
+      {isAuthenticated && user ? (
+        <button
+          className="nav-avatar-btn"
+          onClick={() => goTo(`/profile/${encodeURIComponent(user.sub)}`)}
+          aria-label="Your profile"
+        >
+          <img
+            src={user.picture || "/default-avatar.png"}
+            alt={user.name}
+            className="nav-avatar"
+          />
+        </button>
+      ) : (
+        <button className="nav-login-btn" onClick={login}>
+          Log in / Sign up
+        </button>
+      )}
     </nav>
   );
 }
