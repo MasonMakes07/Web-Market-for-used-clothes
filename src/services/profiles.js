@@ -7,7 +7,7 @@
  */
 
 import { supabase } from "../lib/supabase.js";
-import { sanitizeFields, validateUrl } from "../lib/sanitize.js";
+import { sanitizeFields, sanitizeText, validateUrl } from "../lib/sanitize.js";
 
 const TEXT_FIELDS = ["name", "bio", "college"];
 const UPDATABLE_FIELDS = ["name", "bio", "college", "avatar_url", "meetup_spots"];
@@ -35,7 +35,7 @@ export async function createProfile(userId, profileData) {
     }
     meetupSpots = sanitized.meetup_spots
       .filter((s) => typeof s === "string")
-      .map((s) => s.trim())
+      .map((s) => sanitizeText(s.trim()))
       .filter((s) => s.length > 0);
   }
 
@@ -96,7 +96,7 @@ export async function updateProfile(userId, updates) {
     }
     filtered.meetup_spots = filtered.meetup_spots
       .filter((s) => typeof s === "string")
-      .map((s) => s.trim())
+      .map((s) => sanitizeText(s.trim()))
       .filter((s) => s.length > 0);
   }
 

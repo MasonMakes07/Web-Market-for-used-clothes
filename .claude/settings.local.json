@@ -8,7 +8,8 @@
       "Bash(cp temp-scaffold/.gitignore .gitignore)",
       "Bash(rm -rf temp-scaffold)",
       "Bash(npm install:*)",
-      "WebFetch(domain:api.github.com)"
+      "WebFetch(domain:api.github.com)",
+      "WebFetch(domain:docs.browser-use.com)"
     ]
   }
 }

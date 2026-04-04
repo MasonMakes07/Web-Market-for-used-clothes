@@ -30,7 +30,8 @@ export function MessagesProvider({ children }) {
   const [messages, setMessages] = useState([]);
   const [activeThread, setActiveThreadState] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isConvLoading, setIsConvLoading] = useState(false);
+  const [isMsgLoading, setIsMsgLoading] = useState(false);
   const [error, setError] = useState(null);
 
   // Separate fetch ID refs to prevent cross-cancellation (per code review)
@@ -48,7 +49,7 @@ export function MessagesProvider({ children }) {
     if (!userId) return;
 
     const id = ++convFetchId.current;
-    setIsLoading(true);
+    setIsConvLoading(true);
     setError(null);
 
     try {
@@ -60,7 +61,7 @@ export function MessagesProvider({ children }) {
     } catch (err) {
       if (id === convFetchId.current) setError(err.message);
     } finally {
-      if (id === convFetchId.current) setIsLoading(false);
+      if (id === convFetchId.current) setIsConvLoading(false);
     }
   }, [userId]);
 
@@ -69,14 +70,15 @@ export function MessagesProvider({ children }) {
     if (!userId || !listingId || !otherUserId) return;
 
     const id = ++msgFetchId.current;
-    setIsLoading(true);
+    setIsMsgLoading(true);
     setError(null);
 
     try {
       const data = await getMessages(listingId, userId, otherUserId);
       if (id === msgFetchId.current) setMessages(data);
 
-      // Mark messages as read when viewing the thread
+      // Guard markThreadAsRead — if user switched threads, don't mark the old one
+      if (id !== msgFetchId.current) return;
       await markThreadAsRead(userId, listingId, otherUserId);
 
       // Refresh unread count after marking as read
@@ -85,7 +87,7 @@ export function MessagesProvider({ children }) {
     } catch (err) {
       if (id === msgFetchId.current) setError(err.message);
     } finally {
-      if (id === msgFetchId.current) setIsLoading(false);
+      if (id === msgFetchId.current) setIsMsgLoading(false);
     }
   }, [userId]);
 
@@ -215,7 +217,7 @@ export function MessagesProvider({ children }) {
     sendMessage,
     setActiveThread,
     fetchConversations,
-    isLoading,
+    isLoading: isConvLoading || isMsgLoading,
     error,
   };
 
