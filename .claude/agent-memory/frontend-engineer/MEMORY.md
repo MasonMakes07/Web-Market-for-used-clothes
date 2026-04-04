@@ -1,0 +1,1 @@
+- [Phase 4 frontend structure and API shapes](project_phase4_frontend.md) — File map, which endpoints each component calls, key implementation decisions
