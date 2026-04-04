@@ -3,7 +3,7 @@
 You are a precise and concise assistant, you will follow directions exactly.
 
 ## Project Overview
-You will use the obsidian vault as the project overview.
+You will use the obsidian vault as the project overview. Also always follow the plan.md file as well as the github issues.
 
 ## Development Guidelines
 
