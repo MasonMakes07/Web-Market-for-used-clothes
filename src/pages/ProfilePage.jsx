@@ -1,16 +1,20 @@
 /**
  * ProfilePage.jsx
- * Displays a user's public profile — avatar, bio, college,
- * meetup spots, and their listings grid.
- * Uses useProfile for current user's profile and fetchProfile for other users.
+ * Displays a user's public profile — avatar, bio, college, rating,
+ * meetup spots, reviews, and their listings grid.
+ * Own profile shows "Edit Profile" button; other profiles show "Message".
+ * Uses useProfile for current user and fetchProfile for other users.
+ * Ratings fetched from ratings service (getSellerRating, getSellerRatings).
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth.jsx";
 import { useProfile } from "../hooks/useProfile.jsx";
 import { useListings } from "../hooks/useListings.jsx";
+import { getSellerRating, getSellerRatings } from "../services/ratings.js";
 import ListingCard from "../components/ListingCard.jsx";
+import ListingModal from "../components/ListingModal.jsx";
 import { getCollegeLogo } from "../lib/colleges.js";
 import "./ProfilePage.css";
 
@@ -19,15 +23,49 @@ function formatJoinDate(dateStr) {
   return new Date(dateStr).toLocaleDateString("en-US", { month: "long", year: "numeric" });
 }
 
+// Renders filled/empty stars for a given score (1-5)
+function StarDisplay({ score }) {
+  const stars = [];
+  const rounded = Math.round(score);
+  for (let i = 1; i <= 5; i++) {
+    stars.push(
+      <span key={i} className={i <= rounded ? "star star--filled" : "star star--empty"}>
+        &#9733;
+      </span>
+    );
+  }
+  return <span className="star-display">{stars}</span>;
+}
+
+// Formats a review date as "Mon DD, YYYY"
+function formatReviewDate(dateStr) {
+  return new Date(dateStr).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 export default function ProfilePage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, isAuthenticated, isLoading: authLoading, login } = useAuth();
   const { profile: myProfile, isLoading: profileLoading, fetchProfile } = useProfile();
   const { listings: allListings, isLoading: listingsLoading } = useListings();
+
   const [showAllListings, setShowAllListings] = useState(false);
   const [viewedProfile, setViewedProfile] = useState(null);
-  const [viewLoading, setViewLoading] = useState(false);
+  const [viewLoading, setViewLoading] = useState(!!id);
+  const [selectedListing, setSelectedListing] = useState(null);
+
+  // Rating state
+  const [ratingData, setRatingData] = useState({ average: null, count: 0 });
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [showAllReviews, setShowAllReviews] = useState(false);
+
+  // Stale-response protection (Learning.md Lesson 8)
+  const ratingsFetchIdRef = useRef(0);
 
   // Decode the URL param — user.sub contains "|" which gets percent-encoded
   const decodedId = decodeURIComponent(id);
@@ -38,7 +76,10 @@ export default function ProfilePage() {
 
   // Fetch other user's profile when viewing someone else's page
   useEffect(() => {
-    if (isOwnProfile || !decodedId) return;
+    if (isOwnProfile || !decodedId) {
+      setViewLoading(false);
+      return;
+    }
 
     let cancelled = false;
     setViewLoading(true);
@@ -57,9 +98,40 @@ export default function ProfilePage() {
     return () => { cancelled = true; };
   }, [decodedId, isOwnProfile, fetchProfile]);
 
+  // Fetch ratings and reviews for the profile being viewed
+  const fetchRatings = useCallback(async () => {
+    if (!decodedId) return;
+
+    const id = ++ratingsFetchIdRef.current;
+    setReviewsLoading(true);
+
+    try {
+      const [rating, allReviews] = await Promise.all([
+        getSellerRating(decodedId),
+        getSellerRatings(decodedId),
+      ]);
+      if (id === ratingsFetchIdRef.current) {
+        setRatingData(rating);
+        setReviews(allReviews);
+      }
+    } catch {
+      if (id === ratingsFetchIdRef.current) {
+        setRatingData({ average: null, count: 0 });
+        setReviews([]);
+      }
+    } finally {
+      if (id === ratingsFetchIdRef.current) setReviewsLoading(false);
+    }
+  }, [decodedId]);
+
+  useEffect(() => {
+    fetchRatings();
+  }, [fetchRatings]);
+
   // Filter listings belonging to this profile's user
   const userListings = allListings.filter((l) => l.seller_id === decodedId);
   const visibleListings = showAllListings ? userListings : userListings.slice(0, 4);
+  const visibleReviews = showAllReviews ? reviews : reviews.slice(0, 3);
 
   // Cover auth loading gap (Learning.md Lesson 3)
   if (authLoading || profileLoading || viewLoading || listingsLoading) {
@@ -72,10 +144,10 @@ export default function ProfilePage() {
 
   const collegeLogo = getCollegeLogo(displayProfile.college);
 
-  // Navigate to messages (future: pass listing/seller context)
+  // Navigate to messages with seller context
   function handleMessage() {
     if (!isAuthenticated) { login(); return; }
-    navigate("/messages");
+    navigate("/messages", { state: { sellerId: decodedId } });
   }
 
   return (
@@ -85,7 +157,7 @@ export default function ProfilePage() {
         <div className="profile-cover-placeholder" />
       </div>
 
-      {/* Header — avatar, name, stats */}
+      {/* Header — avatar, name, rating, stats */}
       <div className="profile-header">
         <div className="profile-avatar-wrap">
           <img
@@ -102,6 +174,15 @@ export default function ProfilePage() {
               <img src={collegeLogo} alt={displayProfile.college} className="profile-college-logo" />
             )}
           </div>
+
+          {/* Star rating summary */}
+          {ratingData.average !== null && (
+            <div className="profile-rating">
+              <StarDisplay score={ratingData.average} />
+              <span className="profile-rating-score">{ratingData.average.toFixed(1)}</span>
+              <span className="profile-rating-count">({ratingData.count})</span>
+            </div>
+          )}
 
           <div className="profile-meta">
             {displayProfile.created_at && <span>Joined {formatJoinDate(displayProfile.created_at)}</span>}
@@ -124,10 +205,10 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Bio */}
+      {/* About Me */}
       {displayProfile.bio && (
         <section className="profile-section">
-          <h2 className="profile-section-title">About</h2>
+          <h2 className="profile-section-title">About Me</h2>
           <p className="profile-bio">{displayProfile.bio}</p>
         </section>
       )}
@@ -153,7 +234,7 @@ export default function ProfilePage() {
           <>
             <div className="profile-grid">
               {visibleListings.map((listing) => (
-                <ListingCard key={listing.id} listing={listing} onClick={() => {}} />
+                <ListingCard key={listing.id} listing={listing} onClick={setSelectedListing} />
               ))}
             </div>
             {userListings.length > 4 && (
@@ -167,6 +248,62 @@ export default function ProfilePage() {
           </>
         )}
       </section>
+
+      {/* Reviews section */}
+      <section className="profile-section">
+        <h2 className="profile-section-title">
+          Reviews{ratingData.count > 0 ? ` (${ratingData.count})` : ""}
+        </h2>
+        {reviewsLoading ? (
+          <p className="profile-empty">Loading reviews...</p>
+        ) : reviews.length === 0 ? (
+          <p className="profile-empty">No reviews yet.</p>
+        ) : (
+          <>
+            <div className="profile-reviews">
+              {visibleReviews.map((review) => (
+                <div key={review.id} className="profile-review-card">
+                  <div className="profile-review-header">
+                    <img
+                      src={review.rater?.avatar_url || "/default-avatar.png"}
+                      alt={review.rater?.name || "Reviewer"}
+                      className="profile-review-avatar"
+                    />
+                    <div className="profile-review-meta">
+                      <span className="profile-review-name">{review.rater?.name || "Anonymous"}</span>
+                      <span className="profile-review-date">
+                        {review.created_at ? formatReviewDate(review.created_at) : ""}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="profile-review-stars">
+                    <StarDisplay score={review.score} />
+                  </div>
+                  {review.comment && (
+                    <p className="profile-review-comment">{review.comment}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+            {reviews.length > 3 && (
+              <button
+                className="profile-show-more"
+                onClick={() => setShowAllReviews((v) => !v)}
+              >
+                {showAllReviews ? "Show Less" : `View All ${reviews.length} Reviews`}
+              </button>
+            )}
+          </>
+        )}
+      </section>
+
+      {/* Listing modal — opens when a listing card is clicked */}
+      {selectedListing && (
+        <ListingModal
+          listing={selectedListing}
+          onClose={() => setSelectedListing(null)}
+        />
+      )}
     </div>
   );
 }
