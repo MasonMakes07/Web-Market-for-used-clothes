@@ -122,7 +122,7 @@ export default function SignUpPage() {
         navigate("/");
         return;
       }
-      setError("Failed to create profile. Please try again.");
+      setError(err?.message || "Failed to create profile. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
