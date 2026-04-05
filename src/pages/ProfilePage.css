@@ -255,6 +255,31 @@
   padding: 48px;
 }
 
+/* ── Incomplete profile banner ───────────────────────────────────────────────── */
+
+.profile-incomplete-banner {
+  background: rgba(198, 146, 20, 0.08);
+  border: 1.5px solid var(--ucsd-gold);
+  border-radius: 10px;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.profile-incomplete-banner p {
+  font-size: 15px;
+  color: var(--text-h);
+  font-weight: 500;
+  margin: 0;
+}
+
+.profile-incomplete-banner .profile-btn {
+  flex-shrink: 0;
+}
+
 /* ── Reviews ─────────────────────────────────────────────────────────────────── */
 
 .profile-reviews {

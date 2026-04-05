@@ -74,6 +74,13 @@ export default function ProfilePage() {
   // Determine which profile to display
   const displayProfile = isOwnProfile ? myProfile : viewedProfile;
 
+  // Fallback to Auth0 data when viewing own profile without a Supabase row
+  const effectiveProfile = displayProfile
+    || (isOwnProfile && user
+      ? { name: user.name || user.email || "User", avatar_url: user.picture, bio: null, college: null, meetup_spots: [], created_at: null }
+      : null);
+  const isIncompleteProfile = isOwnProfile && !displayProfile && !!effectiveProfile;
+
   // Fetch other user's profile when viewing someone else's page
   useEffect(() => {
     if (isOwnProfile || !decodedId) {
@@ -138,11 +145,11 @@ export default function ProfilePage() {
     return <p className="profile-loading">Loading profile...</p>;
   }
 
-  if (!displayProfile) {
+  if (!effectiveProfile) {
     return <p className="profile-not-found">Profile not found.</p>;
   }
 
-  const collegeLogo = getCollegeLogo(displayProfile.college);
+  const collegeLogo = getCollegeLogo(effectiveProfile.college);
 
   // Navigate to messages with seller context
   function handleMessage() {
@@ -161,17 +168,17 @@ export default function ProfilePage() {
       <div className="profile-header">
         <div className="profile-avatar-wrap">
           <img
-            src={displayProfile.avatar_url || "/default-avatar.png"}
-            alt={displayProfile.name}
+            src={effectiveProfile.avatar_url || "/default-avatar.png"}
+            alt={effectiveProfile.name}
             className="profile-avatar"
           />
         </div>
 
         <div className="profile-header-info">
           <div className="profile-name-row">
-            <h1 className="profile-name">{displayProfile.name}</h1>
+            <h1 className="profile-name">{effectiveProfile.name}</h1>
             {collegeLogo && (
-              <img src={collegeLogo} alt={displayProfile.college} className="profile-college-logo" />
+              <img src={collegeLogo} alt={effectiveProfile.college} className="profile-college-logo" />
             )}
           </div>
 
@@ -185,40 +192,56 @@ export default function ProfilePage() {
           )}
 
           <div className="profile-meta">
-            {displayProfile.created_at && <span>Joined {formatJoinDate(displayProfile.created_at)}</span>}
-            <span>·</span>
+            {effectiveProfile.created_at && (
+              <>
+                <span>Joined {formatJoinDate(effectiveProfile.created_at)}</span>
+                <span>·</span>
+              </>
+            )}
             <span>{userListings.length} listing{userListings.length !== 1 ? "s" : ""}</span>
           </div>
         </div>
 
         {/* Action buttons */}
         <div className="profile-actions">
-          {isOwnProfile ? (
+          {isOwnProfile && displayProfile ? (
             <button className="profile-btn profile-btn--primary" onClick={() => navigate("/profile/edit")}>
               Edit Profile
             </button>
-          ) : (
+          ) : !isOwnProfile ? (
             <button className="profile-btn profile-btn--primary" onClick={handleMessage}>
               Message
             </button>
-          )}
+          ) : null}
         </div>
       </div>
 
+      {/* Incomplete profile banner — shown when user has no Supabase profile yet */}
+      {isIncompleteProfile && (
+        <section className="profile-section">
+          <div className="profile-incomplete-banner">
+            <p>Your profile is not complete yet. Add your college, bio, and meetup spots.</p>
+            <button className="profile-btn profile-btn--primary" onClick={() => navigate("/signup")}>
+              Complete Your Profile
+            </button>
+          </div>
+        </section>
+      )}
+
       {/* About Me */}
-      {displayProfile.bio && (
+      {effectiveProfile.bio && (
         <section className="profile-section">
           <h2 className="profile-section-title">About Me</h2>
-          <p className="profile-bio">{displayProfile.bio}</p>
+          <p className="profile-bio">{effectiveProfile.bio}</p>
         </section>
       )}
 
       {/* Meetup spots */}
-      {displayProfile.meetup_spots?.length > 0 && (
+      {effectiveProfile.meetup_spots?.length > 0 && (
         <section className="profile-section">
           <h2 className="profile-section-title">Ideal Meetup Spots</h2>
           <div className="profile-spots">
-            {displayProfile.meetup_spots.map((spot, i) => (
+            {effectiveProfile.meetup_spots.map((spot, i) => (
               <span key={`${spot}-${i}`} className="profile-spot-badge">{spot}</span>
             ))}
           </div>
