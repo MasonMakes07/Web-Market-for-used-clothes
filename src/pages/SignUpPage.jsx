@@ -113,8 +113,17 @@ export default function SignUpPage() {
         college,
         meetup_spots: meetupSpots,
       });
+
+      // Mark profile as created so useAuth skips the DB check on future logins
+      localStorage.setItem(`triton_thrift_profile_${user.sub}`, "1");
       navigate("/");
-    } catch {
+    } catch (err) {
+      // If profile already exists (e.g. user navigated here directly), cache and go home
+      if (err?.message?.includes("duplicate") || err?.code === "23505") {
+        localStorage.setItem(`triton_thrift_profile_${user.sub}`, "1");
+        navigate("/");
+        return;
+      }
       setError("Failed to create profile. Please try again.");
     } finally {
       setIsSubmitting(false);

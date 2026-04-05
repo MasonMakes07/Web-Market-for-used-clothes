@@ -27,42 +27,49 @@ export function AuthProvider({ children }) {
   const [profileChecked, setProfileChecked] = useState(false);
   const [isCheckingProfile, setIsCheckingProfile] = useState(false);
 
-  // After Auth0 login, check if user has a Supabase profile row
+  // After Auth0 login, check if user has a profile and redirect new users to /signup.
+  // Uses localStorage as a fast-path cache to avoid Supabase RLS issues on anon reads.
   useEffect(() => {
     if (!isAuthenticated || !auth0User || profileChecked || isCheckingProfile) {
       return;
     }
 
-    // Queries profiles table and redirects based on result
     async function checkProfile() {
       setIsCheckingProfile(true);
 
+      const localKey = `triton_thrift_profile_${auth0User.sub}`;
+
       try {
-        if (!supabase) {
-          console.error("Supabase client not initialized — skipping profile check.");
+        // Fast path: if we've seen this user create a profile before, skip the DB query
+        if (localStorage.getItem(localKey) === "1") {
           setProfileChecked(true);
           return;
         }
 
-        const { data, error } = await supabase
+        if (!supabase) {
+          // Can't check — send to signup so they can create one
+          navigate("/signup", { replace: true });
+          setProfileChecked(true);
+          return;
+        }
+
+        const { data } = await supabase
           .from("profiles")
           .select("id")
           .eq("id", auth0User.sub)
           .maybeSingle();
 
-        if (error) {
-          console.error("Error checking profile:", error.message);
-          setProfileChecked(true);
-          return;
-        }
-
-        if (!data) {
-          // New user — send to signup to complete their profile
+        if (data) {
+          // Profile confirmed in DB — cache the result so future logins are instant
+          localStorage.setItem(localKey, "1");
+        } else {
+          // No profile found (new user or RLS blocked the read) — go to signup
           navigate("/signup", { replace: true });
         }
-        // Existing user — stay on current page (don't force-navigate to /)
       } catch (err) {
         console.error("Unexpected error during profile check:", err);
+        // On unexpected error, send to signup — SignUpPage handles the duplicate case
+        navigate("/signup", { replace: true });
       } finally {
         setProfileChecked(true);
         setIsCheckingProfile(false);
