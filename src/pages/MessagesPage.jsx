@@ -60,13 +60,40 @@ const MEETUP_SPOTS = [
 ];
 
 // Prefix tokens used to encode special message types
-const PROPOSAL_PREFIX = "__MEETUP__:";
-const ACCEPT_PREFIX   = "__MEETUP_OK__:";
-const DECLINE_PREFIX  = "__MEETUP_NO__:";
+const PROPOSAL_PREFIX  = "__MEETUP__:";
+const ACCEPT_PREFIX    = "__MEETUP_OK__:";
+const DECLINE_PREFIX   = "__MEETUP_NO__:";
+const TIME_PREFIX      = "__TIME__:";
+const TIME_OK_PREFIX   = "__TIME_OK__:";
+const TIME_NO_PREFIX   = "__TIME_NO__:";
 
 // Returns spot data by name, or null if not found
 function findSpot(name) {
   return MEETUP_SPOTS.find((s) => s.name === name) || null;
+}
+
+// Builds a Google Calendar "add event" URL — no API key required
+function buildCalendarUrl(spotName, isoDateTime, itemTitle) {
+  const start = new Date(isoDateTime);
+  const end = new Date(start.getTime() + 60 * 60 * 1000); // 1-hour block
+  const pad = (d) => d.toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z";
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: `Triton Thrift Meetup${itemTitle ? `: ${itemTitle}` : ""}`,
+    location: spotName,
+    dates: `${pad(start)}/${pad(end)}`,
+    details: "Meetup arranged via Triton Thrift",
+  });
+  return `https://calendar.google.com/calendar/render?${params}`;
+}
+
+// Formats an ISO datetime string for display (e.g. "Sat Apr 5 at 2:00 PM")
+function formatDateTime(isoStr) {
+  if (!isoStr) return "";
+  return new Date(isoStr).toLocaleString("en-US", {
+    weekday: "short", month: "short", day: "numeric",
+    hour: "numeric", minute: "2-digit",
+  });
 }
 
 // Decodes internal meetup prefixes into human-readable preview text
@@ -78,6 +105,14 @@ function previewText(content) {
     return `Meetup confirmed: ${content.slice(ACCEPT_PREFIX.length)}`;
   if (content.startsWith(DECLINE_PREFIX))
     return `Meetup declined: ${content.slice(DECLINE_PREFIX.length)}`;
+  if (content.startsWith(TIME_PREFIX)) {
+    const [spot, dt] = content.slice(TIME_PREFIX.length).split("|");
+    return `Time proposed: ${spot} @ ${formatDateTime(dt)}`;
+  }
+  if (content.startsWith(TIME_OK_PREFIX))
+    return `Time confirmed!`;
+  if (content.startsWith(TIME_NO_PREFIX))
+    return `Time declined`;
   return content;
 }
 
@@ -92,8 +127,8 @@ function formatTime(dateStr) {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
-// Renders a single message bubble — handles text, meetup proposals, and responses
-function MessageBubble({ msg, userId, allMessages, onAccept, onDecline }) {
+// Renders a single message bubble — handles text, meetup proposals, time proposals, and responses
+function MessageBubble({ msg, userId, allMessages, onAccept, onDecline, onAcceptTime, onDeclineTime, calendarUrl }) {
   const [imgFailed, setImgFailed] = useState(false);
   const isMine = msg.sender_id === userId;
   const { content } = msg;
@@ -173,6 +208,73 @@ function MessageBubble({ msg, userId, allMessages, onAccept, onDecline }) {
     );
   }
 
+  // ── Time proposal ────────────────────────────────────────────────────────────
+  if (content.startsWith(TIME_PREFIX)) {
+    const payload = content.slice(TIME_PREFIX.length);
+    const [spotName, isoDateTime] = payload.split("|");
+    const alreadyRespondedTime = allMessages.some((m) => {
+      if (m.content.startsWith(TIME_OK_PREFIX)) return m.content.slice(TIME_OK_PREFIX.length) === payload;
+      if (m.content.startsWith(TIME_NO_PREFIX)) return m.content.slice(TIME_NO_PREFIX.length) === payload;
+      return false;
+    });
+    return (
+      <div className="messages-time-proposal">
+        <p className="messages-time-proposal-label">📅 Proposed time</p>
+        <p className="messages-time-proposal-spot">📍 {spotName}</p>
+        <p className="messages-time-proposal-dt">{formatDateTime(isoDateTime)}</p>
+        {isMine || alreadyRespondedTime ? (
+          <p className="messages-meetup-pending">
+            {alreadyRespondedTime ? "Response sent." : "Waiting for response..."}
+          </p>
+        ) : (
+          <div className="messages-meetup-actions">
+            <button
+              className="messages-meetup-btn messages-meetup-btn--accept"
+              onClick={() => onAcceptTime(payload)}
+              aria-label="Accept this time"
+            >✓</button>
+            <button
+              className="messages-meetup-btn messages-meetup-btn--decline"
+              onClick={() => onDeclineTime(payload)}
+              aria-label="Decline this time"
+            >✗</button>
+          </div>
+        )}
+        <span className="messages-bubble-time">{formatTime(msg.created_at)}</span>
+      </div>
+    );
+  }
+
+  // ── Time confirmed ───────────────────────────────────────────────────────────
+  if (content.startsWith(TIME_OK_PREFIX)) {
+    const payload = content.slice(TIME_OK_PREFIX.length);
+    const [spotName, isoDateTime] = payload.split("|");
+    return (
+      <div className="messages-system-msg messages-system-msg--ok messages-system-msg--calendar">
+        ✓ Meetup at <strong>{spotName}</strong> on <strong>{formatDateTime(isoDateTime)}</strong> confirmed!
+        {calendarUrl && (
+          <a
+            href={calendarUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="messages-calendar-link"
+          >
+            Add to Google Calendar
+          </a>
+        )}
+      </div>
+    );
+  }
+
+  // ── Time declined ────────────────────────────────────────────────────────────
+  if (content.startsWith(TIME_NO_PREFIX)) {
+    return (
+      <div className="messages-system-msg messages-system-msg--no">
+        ✗ That time didn&apos;t work. Propose another.
+      </div>
+    );
+  }
+
   // ── Regular text bubble ──────────────────────────────────────────────────────
   return (
     <div className={`messages-bubble-wrap ${isMine ? "messages-bubble-wrap--mine" : ""}`}>
@@ -199,7 +301,11 @@ export default function MessagesPage() {
 
   const location = useLocation();
   const [input, setInput] = useState("");
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [proposedDate, setProposedDate] = useState("");
+  const [proposedTime, setProposedTime] = useState("");
   const bottomRef = useRef(null);
+  const todayStr = new Date().toISOString().slice(0, 10);
 
   // Open thread from ListingModal's "Message Seller" navigation state
   useEffect(() => {
@@ -282,6 +388,70 @@ export default function MessagesPage() {
     try {
       await sendMessage(
         `${DECLINE_PREFIX}${spotName}`,
+        activeThread.otherUserId,
+        activeThread.listingId
+      );
+    } catch {
+      // Error is set in useMessages context
+    }
+  }
+
+  // Derive confirmed spot from the most recent __MEETUP_OK__ message
+  const confirmedSpot = [...messages].reverse()
+    .find((m) => m.content.startsWith(ACCEPT_PREFIX))
+    ?.content.slice(ACCEPT_PREFIX.length) || null;
+
+  // Derive confirmed time payload (SpotName|ISO) from __TIME_OK__ message
+  const confirmedTimePayload = messages
+    .find((m) => m.content.startsWith(TIME_OK_PREFIX))
+    ?.content.slice(TIME_OK_PREFIX.length) || null;
+
+  // Build Google Calendar URL once time is confirmed
+  const calendarUrl = confirmedTimePayload
+    ? (() => {
+        const [spot, dt] = confirmedTimePayload.split("|");
+        return buildCalendarUrl(spot, dt, activeConv?.listing?.title);
+      })()
+    : null;
+
+  // Sends a time proposal message
+  async function handleProposeTime() {
+    if (!activeThread || !proposedDate || !proposedTime || !confirmedSpot) return;
+    const isoDateTime = `${proposedDate}T${proposedTime}`;
+    setShowTimePicker(false);
+    setProposedDate("");
+    setProposedTime("");
+    try {
+      await sendMessage(
+        `${TIME_PREFIX}${confirmedSpot}|${isoDateTime}`,
+        activeThread.otherUserId,
+        activeThread.listingId
+      );
+    } catch {
+      // Error is set in useMessages context
+    }
+  }
+
+  // Sends a time acceptance message
+  async function handleAcceptTime(payload) {
+    if (!activeThread) return;
+    try {
+      await sendMessage(
+        `${TIME_OK_PREFIX}${payload}`,
+        activeThread.otherUserId,
+        activeThread.listingId
+      );
+    } catch {
+      // Error is set in useMessages context
+    }
+  }
+
+  // Sends a time decline message
+  async function handleDeclineTime(payload) {
+    if (!activeThread) return;
+    try {
+      await sendMessage(
+        `${TIME_NO_PREFIX}${payload}`,
         activeThread.otherUserId,
         activeThread.listingId
       );
@@ -377,10 +547,54 @@ export default function MessagesPage() {
                   allMessages={messages}
                   onAccept={handleAccept}
                   onDecline={handleDecline}
+                  onAcceptTime={handleAcceptTime}
+                  onDeclineTime={handleDeclineTime}
+                  calendarUrl={calendarUrl}
                 />
               ))}
               <div ref={bottomRef} />
             </div>
+
+            {/* Schedule bar — shown when spot confirmed but time not yet set */}
+            {confirmedSpot && !confirmedTimePayload && (
+              <div className="messages-schedule-bar">
+                <span className="messages-schedule-bar-text">
+                  📍 <strong>{confirmedSpot}</strong> confirmed
+                </span>
+                <button
+                  className="messages-propose-time-btn"
+                  onClick={() => setShowTimePicker((v) => !v)}
+                >
+                  {showTimePicker ? "Cancel" : "Propose Time"}
+                </button>
+              </div>
+            )}
+
+            {/* Inline date/time picker */}
+            {showTimePicker && confirmedSpot && (
+              <div className="messages-time-picker-row">
+                <input
+                  type="date"
+                  className="messages-date-input"
+                  value={proposedDate}
+                  min={todayStr}
+                  onChange={(e) => setProposedDate(e.target.value)}
+                />
+                <input
+                  type="time"
+                  className="messages-time-input"
+                  value={proposedTime}
+                  onChange={(e) => setProposedTime(e.target.value)}
+                />
+                <button
+                  className="messages-send-btn"
+                  onClick={handleProposeTime}
+                  disabled={!proposedDate || !proposedTime}
+                >
+                  Send
+                </button>
+              </div>
+            )}
 
             <div className="messages-input-row">
               <textarea

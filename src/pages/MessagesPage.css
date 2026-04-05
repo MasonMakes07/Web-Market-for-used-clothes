@@ -324,6 +324,127 @@
   color: #c62828;
 }
 
+/* Time proposal bubble */
+.messages-time-proposal {
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  border: 1.5px solid var(--ucsd-navy);
+  border-radius: 14px;
+  padding: 14px 20px;
+  max-width: 260px;
+  width: 100%;
+}
+
+.messages-time-proposal-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.messages-time-proposal-spot {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ucsd-navy);
+  margin: 0;
+}
+
+.messages-time-proposal-dt {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-h);
+  margin: 0;
+  text-align: center;
+}
+
+/* System message with calendar link */
+.messages-system-msg--calendar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.messages-calendar-link {
+  display: inline-block;
+  padding: 8px 16px;
+  background: #1a73e8;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 20px;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.messages-calendar-link:hover {
+  background: #1557b0;
+}
+
+/* Schedule confirmation bar */
+.messages-schedule-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background: #f0f4ff;
+  border-top: 1px solid #d0d9f0;
+  flex-shrink: 0;
+}
+
+.messages-schedule-bar-text {
+  font-size: 13px;
+  color: var(--ucsd-navy);
+}
+
+.messages-propose-time-btn {
+  padding: 6px 14px;
+  background: var(--ucsd-navy);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.messages-propose-time-btn:hover {
+  background: #0f1e35;
+}
+
+/* Inline date/time picker row */
+.messages-time-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #fff;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.messages-date-input,
+.messages-time-input {
+  padding: 8px 10px;
+  font-size: 13px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.messages-date-input:focus,
+.messages-time-input:focus {
+  border-color: var(--ucsd-navy);
+}
+
 /* Message input row */
 .messages-input-row {
   display: flex;
