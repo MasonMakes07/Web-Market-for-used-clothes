@@ -8,14 +8,13 @@
  * Exposes an unread count for the NavBar notification badge.
  */
 
-import { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { supabase } from "../lib/supabase.js";
 import {
   sendMessage as sendMessageService,
   getMessages,
   getConversations,
   markThreadAsRead,
-  getUnreadCount,
 } from "../services/messages.js";
 import { useAuth } from "./useAuth.jsx";
 
@@ -29,10 +28,15 @@ export function MessagesProvider({ children }) {
   const [conversations, setConversations] = useState([]);
   const [messages, setMessages] = useState([]);
   const [activeThread, setActiveThreadState] = useState(null);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [isConvLoading, setIsConvLoading] = useState(false);
   const [isMsgLoading, setIsMsgLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Derived from conversations state — no separate DB call needed, no race condition
+  const unreadCount = useMemo(
+    () => conversations.reduce((sum, c) => sum + (c.unread || 0), 0),
+    [conversations]
+  );
 
   // Separate fetch ID refs to prevent cross-cancellation (per code review)
   const convFetchId = useRef(0);
@@ -55,9 +59,6 @@ export function MessagesProvider({ children }) {
     try {
       const data = await getConversations(userId);
       if (id === convFetchId.current) setConversations(data);
-
-      const count = await getUnreadCount(userId);
-      if (id === convFetchId.current) setUnreadCount(count);
     } catch (err) {
       if (id === convFetchId.current) setError(err.message);
     } finally {
@@ -81,15 +82,14 @@ export function MessagesProvider({ children }) {
       if (id !== msgFetchId.current) return;
       await markThreadAsRead(userId, listingId, otherUserId);
 
-      // Refresh unread count after marking as read
-      const count = await getUnreadCount(userId);
-      if (id === msgFetchId.current) setUnreadCount(count);
+      // Refresh conversations after marking as read so unreadCount stays accurate
+      if (id === msgFetchId.current) fetchConversations();
     } catch (err) {
       if (id === msgFetchId.current) setError(err.message);
     } finally {
       if (id === msgFetchId.current) setIsMsgLoading(false);
     }
-  }, [userId]);
+  }, [userId, fetchConversations]);
 
   // Sets the active thread and loads its messages
   const setActiveThread = useCallback((listingId, otherUserId) => {
@@ -140,7 +140,6 @@ export function MessagesProvider({ children }) {
     } else {
       setConversations([]);
       setMessages([]);
-      setUnreadCount(0);
       setActiveThreadState(null);
     }
   }, [isAuthenticated, userId, fetchConversations]);
@@ -163,18 +162,18 @@ export function MessagesProvider({ children }) {
           const newMsg = payload.new;
           const current = activeThreadRef.current;
 
-          // If this message belongs to the active thread, await fetchMessages so
-          // markThreadAsRead completes before fetchConversations reads the unread count
+          // If this message belongs to the active thread, fetchMessages handles
+          // markThreadAsRead and then calls fetchConversations itself
           if (
             current &&
             newMsg.listing_id === current.listingId &&
             newMsg.sender_id === current.otherUserId
           ) {
             await fetchMessages(current.listingId, current.otherUserId);
+          } else {
+            // Not in active thread — just refresh conversations
+            fetchConversations();
           }
-
-          // Refresh conversations and unread count after read state is settled
-          fetchConversations();
         }
       )
       .on(
@@ -189,18 +188,17 @@ export function MessagesProvider({ children }) {
           const newMsg = payload.new;
           const current = activeThreadRef.current;
 
-          // Wait for fetchMessages (which runs markThreadAsRead) before fetching
-          // conversations — prevents unread count from briefly flashing on send
+          // fetchMessages handles markThreadAsRead and then calls fetchConversations itself
           if (
             current &&
             newMsg.listing_id === current.listingId &&
             newMsg.receiver_id === current.otherUserId
           ) {
             await fetchMessages(current.listingId, current.otherUserId);
+          } else {
+            // Not in active thread — just refresh conversations
+            fetchConversations();
           }
-
-          // Refresh conversation list after read state is up to date
-          fetchConversations();
         }
       )
       .subscribe();

@@ -2,7 +2,7 @@
 
 .messages {
   display: flex;
-  height: calc(100svh - 56px); /* subtract NavBar height */
+  height: calc(100svh - 72px); /* subtract NavBar height */
   overflow: hidden;
   border-top: 1px solid var(--border);
 }
@@ -636,7 +636,7 @@
 @media (max-width: 640px) {
   .messages {
     flex-direction: column;
-    height: calc(100svh - 56px);
+    height: calc(100svh - 72px);
   }
 
   .messages-sidebar {

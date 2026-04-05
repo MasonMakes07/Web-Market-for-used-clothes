@@ -34,60 +34,68 @@ export default function NavBar() {
 
   return (
     <nav className="navbar">
-      <button className="nav-btn" onClick={() => goTo("/sell")}>
-        Sell
-      </button>
+      {/* Left zone — empty spacer for grid balance */}
+      <div />
 
-      <Link className="nav-btn" to="/?search=true">
-        Search
-      </Link>
+      {/* Center zone — main nav links */}
+      <div className="navbar-center">
+        <button className="nav-btn" onClick={() => goTo("/sell")}>
+          Sell
+        </button>
 
-      <button
-        className="nav-btn"
-        onClick={() =>
-          isAuthenticated && user
-            ? goTo(`/profile/${encodeURIComponent(user.sub)}`)
-            : login()
-        }
-      >
-        Profile
-      </button>
+        <Link className="nav-btn" to="/?search=true">
+          Search
+        </Link>
 
-      <button className="nav-btn" onClick={() => goTo("/messages")}>
-        Messages
-      </button>
-
-      {isAuthenticated && (
         <button
-          className="nav-notif-btn"
-          onClick={() => goTo("/messages")}
-          aria-label={`${unreadCount} unread messages`}
+          className="nav-btn"
+          onClick={() =>
+            isAuthenticated && user
+              ? goTo(`/profile/${encodeURIComponent(user.sub)}`)
+              : login()
+          }
         >
-          <img src="/Notification.png" alt="Notifications" className="nav-notif-icon" />
-          {unreadCount > 0 && (
-            <span className="nav-notif-badge">{unreadCount > 99 ? "99+" : unreadCount}</span>
-          )}
+          Profile
         </button>
-      )}
 
-      {/* Login / avatar — right side */}
-      {isAuthenticated && user ? (
-        <button
-          className="nav-avatar-btn"
-          onClick={() => goTo(`/profile/${encodeURIComponent(user.sub)}`)}
-          aria-label="Your profile"
-        >
-          <img
-            src={avatarSrc}
-            alt={user.name}
-            className="nav-avatar"
-          />
+        <button className="nav-btn" onClick={() => goTo("/messages")}>
+          Messages
         </button>
-      ) : (
-        <button className="nav-login-btn" onClick={login}>
-          Log in / Sign up
-        </button>
-      )}
+      </div>
+
+      {/* Right zone — notification bell + avatar/login */}
+      <div className="navbar-right">
+        {isAuthenticated && (
+          <button
+            className="nav-notif-btn"
+            onClick={() => goTo("/messages")}
+            aria-label={`${unreadCount} unread messages`}
+          >
+            <img src="/Notification.png" alt="Notifications" className="nav-notif-icon" />
+            {unreadCount > 0 && (
+              <span className="nav-notif-badge">{unreadCount > 99 ? "99+" : unreadCount}</span>
+            )}
+          </button>
+        )}
+
+        {isAuthenticated && user ? (
+          <button
+            className="nav-avatar-btn"
+            onClick={() => goTo(`/profile/${encodeURIComponent(user.sub)}`)}
+            aria-label="Your profile"
+          >
+            <img
+              src={avatarSrc}
+              alt={user.name}
+              className="nav-avatar"
+            />
+          </button>
+        ) : (
+          <button className="nav-login-btn" onClick={login}>
+            Log in / Sign up
+          </button>
+        )}
+      </div>
     </nav>
   );
 }
