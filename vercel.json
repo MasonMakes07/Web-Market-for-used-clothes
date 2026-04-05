@@ -6,8 +6,7 @@
         },
         "backend": {
             "entrypoint": "backend",
-            "routePrefix": "/_/backend",
-            "config": "python3.11"
+            "routePrefix": "/_/backend"
         }
     }
 }
