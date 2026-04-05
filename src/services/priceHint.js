@@ -6,7 +6,7 @@
  * Returns a price range or null if no data is available.
  */
 
-const PRICE_HINT_API = import.meta.env.VITE_PRICE_HINT_API || "http://localhost:8000";
+const PRICE_HINT_API = import.meta.env.VITE_PRICE_HINT_API || "https://web-market-for-used-clothes-production.up.railway.app";
 
 // Fetches a suggested price range for a clothing item from the backend
 export async function getPriceHint(title, category) {
