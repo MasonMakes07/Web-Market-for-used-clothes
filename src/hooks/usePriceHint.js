@@ -17,8 +17,8 @@ export function usePriceHint() {
   const fetchIdRef = useRef(0);
   const debounceRef = useRef(null);
 
-  // Fetches price hint for the given title and category (debounced)
-  const fetchPriceHint = useCallback((title, category) => {
+  // Fetches price hint for the given title, category, and optional image URL (debounced)
+  const fetchPriceHint = useCallback((title, category, imageUrl = null) => {
     // Clear any pending debounce
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
@@ -40,7 +40,7 @@ export function usePriceHint() {
       setIsLoading(true);
 
       try {
-        const data = await getPriceHint(title, category);
+        const data = await getPriceHint(title, category, imageUrl);
         if (id === fetchIdRef.current) {
           setPriceHint(data);
         }

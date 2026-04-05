@@ -8,8 +8,9 @@
 
 const PRICE_HINT_API = import.meta.env.VITE_PRICE_HINT_API || "http://localhost:8000";
 
-// Fetches a suggested price range for a clothing item from the backend
-export async function getPriceHint(title, category) {
+// Fetches a suggested price range for a clothing item from the backend.
+// Passes image_url when available so Browser Use can do image-based eBay search.
+export async function getPriceHint(title, category, imageUrl = null) {
   if (!title || title.trim().length === 0) {
     throw new Error("Title is required for price suggestion.");
   }
@@ -17,6 +18,9 @@ export async function getPriceHint(title, category) {
   const params = new URLSearchParams({ title: title.trim() });
   if (category && category.trim().length > 0) {
     params.set("category", category.trim());
+  }
+  if (imageUrl && imageUrl.startsWith("https://")) {
+    params.set("image_url", imageUrl);
   }
 
   const response = await fetch(`${PRICE_HINT_API}/price-hint?${params}`);
