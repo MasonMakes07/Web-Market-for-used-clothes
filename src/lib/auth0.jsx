@@ -8,7 +8,6 @@
  */
 
 import { Auth0Provider } from "@auth0/auth0-react";
-import { useNavigate } from "react-router-dom";
 
 const domain = import.meta.env.VITE_AUTH0_DOMAIN;
 const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID;
@@ -23,8 +22,6 @@ if (!domain || !clientId) {
 
 // Wraps children in Auth0Provider with env-based config
 export function Auth0ProviderWithConfig({ children }) {
-  const navigate = useNavigate();
-
   if (!domain || !clientId) {
     return <p style={{ color: "red", padding: "2rem" }}>Auth0 is not configured. Copy .env.example to .env and add your keys.</p>;
   }
@@ -32,9 +29,10 @@ export function Auth0ProviderWithConfig({ children }) {
   const redirectUri =
     typeof window !== "undefined" ? window.location.origin : "";
 
-  // Strips ?code= and ?state= params after Auth0 redirect
+  // Strips ?code= and ?state= params after Auth0 redirect.
+  // Does NOT navigate — useAuth's profile check handles post-login routing.
   function onRedirectCallback(appState) {
-    navigate(appState?.returnTo || "/", { replace: true });
+    window.history.replaceState({}, "", appState?.returnTo || window.location.pathname);
   }
 
   return (
