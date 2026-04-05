@@ -172,8 +172,8 @@ export default function SellPage() {
         tags,
       });
       navigate("/");
-    } catch {
-      setError("Failed to post listing. Please try again.");
+    } catch (err) {
+      setError(err?.message || "Failed to post listing. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
