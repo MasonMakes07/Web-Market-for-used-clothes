@@ -12,6 +12,7 @@ import ProfilePage from "./pages/ProfilePage.jsx";
 import SignUpPage from "./pages/SignUpPage.jsx";
 import MessagesPage from "./pages/MessagesPage.jsx";
 import SellPage from "./pages/SellPage.jsx";
+import EditProfilePage from "./pages/EditProfilePage.jsx";
 import "./App.css";
 
 // Route guard — redirects unauthenticated users to home
@@ -66,6 +67,14 @@ function App() {
           element={
             <RequireAuth>
               <SellPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/profile/edit"
+          element={
+            <RequireAuth>
+              <EditProfilePage />
             </RequireAuth>
           }
         />
