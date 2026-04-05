@@ -8,7 +8,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth.jsx";
-import { useProfile } from "../hooks/useProfile.js";
+import { useProfile } from "../hooks/useProfile.jsx";
 import { useListings } from "../hooks/useListings.jsx";
 import ListingCard from "../components/ListingCard.jsx";
 import { getCollegeLogo } from "../lib/colleges.js";
