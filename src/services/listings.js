@@ -80,7 +80,7 @@ export async function createListing(userId, listingData) {
     .select()
     .single();
 
-  if (error) throw new Error("Failed to create listing.");
+  if (error) throw new Error(`Failed to create listing: ${error.message} (code: ${error.code})`);
   return data;
 }
 
