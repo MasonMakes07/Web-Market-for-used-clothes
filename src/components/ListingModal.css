@@ -170,6 +170,29 @@
   background: #0f1e35;
 }
 
+/* Delete Listing button — shown for own listings */
+.modal-delete-btn {
+  width: 100%;
+  padding: 13px;
+  background: #c0392b;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.modal-delete-btn:hover {
+  background: #a93226;
+}
+
+.modal-delete-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* Responsive — stack on small screens */
 @media (max-width: 620px) {
   .modal-content {

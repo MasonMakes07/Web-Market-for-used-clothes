@@ -4,17 +4,22 @@
  * Displays the full item details, seller UserBar, and a Message Seller button.
  */
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth.jsx";
+import { useListings } from "../hooks/useListings.jsx";
 import UserBar from "./UserBar.jsx";
 import { getCollegeLogo } from "../lib/colleges.js";
 import "./ListingModal.css";
 
 export default function ListingModal({ listing, onClose }) {
   const navigate = useNavigate();
-  const { isAuthenticated, login } = useAuth();
+  const { user, isAuthenticated, login } = useAuth();
+  const { deleteListing } = useListings();
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const isOwnListing = isAuthenticated && user?.sub === (listing?.seller_id || listing?.seller?.id);
 
   // Lock body scroll and handle Escape key while modal is open
   useEffect(() => {
@@ -36,6 +41,20 @@ export default function ListingModal({ listing, onClose }) {
     if (e.target === e.currentTarget) onClose();
   }
 
+  // Delete own listing then close modal
+  async function handleDelete() {
+    if (!window.confirm("Delete this listing? This cannot be undone.")) return;
+    setIsDeleting(true);
+    try {
+      await deleteListing(user.sub, listing.id);
+      onClose();
+    } catch {
+      alert("Failed to delete listing. Please try again.");
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
   // Redirect to messages with listing/seller context, or trigger Auth0 login
   function handleMessageSeller() {
     if (!isAuthenticated) {
@@ -46,6 +65,9 @@ export default function ListingModal({ listing, onClose }) {
         state: {
           listingId: listing.id,
           sellerId: listing.seller_id || listing.seller?.id,
+          sellerName: listing.seller?.name || null,
+          sellerAvatar: listing.seller?.avatar_url || null,
+          listingTitle: listing.title || null,
         },
       });
     }
@@ -111,9 +133,15 @@ export default function ListingModal({ listing, onClose }) {
             <UserBar seller={listing.seller} sellerId={listing.seller_id} onNavigate={onClose} />
           </div>
 
-          <button className="modal-message-btn" onClick={handleMessageSeller}>
-            Message Seller
-          </button>
+          {isOwnListing ? (
+            <button className="modal-delete-btn" onClick={handleDelete} disabled={isDeleting}>
+              {isDeleting ? "Deleting..." : "Delete Listing"}
+            </button>
+          ) : (
+            <button className="modal-message-btn" onClick={handleMessageSeller}>
+              Message Seller
+            </button>
+          )}
         </div>
       </div>
     </div>,
