@@ -15,15 +15,8 @@ import { useProfile } from "../hooks/useProfile.jsx";
 import { uploadAvatar } from "../services/storage.js";
 import { sanitizeText } from "../lib/sanitize.js";
 import { COLLEGES } from "../lib/colleges.js";
+import { MEETUP_SPOTS } from "../lib/meetupSpots.js";
 import "./SignUpPage.css";
-
-const MEETUP_SPOTS = [
-  "Geisel Library",
-  "Price Center",
-  "Sun God Lawn",
-  "Panda Express",
-  "PC Loop",
-];
 
 export default function SignUpPage() {
   const { user } = useAuth();
@@ -71,10 +64,10 @@ export default function SignUpPage() {
     setError("");
   }
 
-  // Toggle a meetup spot on or off
-  function toggleMeetupSpot(spot) {
+  // Toggle a meetup spot on or off (stores the name string)
+  function toggleMeetupSpot(spotName) {
     setMeetupSpots((prev) =>
-      prev.includes(spot) ? prev.filter((s) => s !== spot) : [...prev, spot]
+      prev.includes(spotName) ? prev.filter((s) => s !== spotName) : [...prev, spotName]
     );
   }
 
@@ -205,13 +198,14 @@ export default function SignUpPage() {
             <div className="signup-spots">
               {MEETUP_SPOTS.map((spot) => (
                 <button
-                  key={spot}
+                  key={spot.name}
                   type="button"
-                  className={`signup-spot-btn ${meetupSpots.includes(spot) ? "signup-spot-btn--selected" : ""}`}
-                  onClick={() => toggleMeetupSpot(spot)}
-                  aria-pressed={meetupSpots.includes(spot)}
+                  className={`signup-spot-card ${meetupSpots.includes(spot.name) ? "signup-spot-card--selected" : ""}`}
+                  onClick={() => toggleMeetupSpot(spot.name)}
+                  aria-pressed={meetupSpots.includes(spot.name)}
                 >
-                  {spot}
+                  <img src={spot.image} alt={spot.name} className="signup-spot-img" />
+                  <span className="signup-spot-name">{spot.name}</span>
                 </button>
               ))}
             </div>
