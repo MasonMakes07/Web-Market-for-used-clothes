@@ -9,7 +9,9 @@
       "Bash(rm -rf temp-scaffold)",
       "Bash(npm install:*)",
       "WebFetch(domain:api.github.com)",
-      "WebFetch(domain:docs.browser-use.com)"
+      "WebFetch(domain:docs.browser-use.com)",
+      "Bash(taskkill /F /IM node.exe)",
+      "Bash(taskkill /F /IM python.exe)"
     ]
   }
 }
