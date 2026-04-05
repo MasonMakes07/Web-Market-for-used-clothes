@@ -56,11 +56,11 @@ export function AuthProvider({ children }) {
           return;
         }
 
-        if (data) {
-          navigate("/", { replace: true });
-        } else {
+        if (!data) {
+          // New user — send to signup to complete their profile
           navigate("/signup", { replace: true });
         }
+        // Existing user — stay on current page (don't force-navigate to /)
       } catch (err) {
         console.error("Unexpected error during profile check:", err);
       } finally {
