@@ -11,6 +11,7 @@ import {
   getListings,
   createListing as createListingService,
   saveDraft as saveDraftService,
+  deleteListing as deleteListingService,
 } from "../services/listings.js";
 
 const ListingsContext = createContext(null);
@@ -56,6 +57,18 @@ export function ListingsProvider({ children }) {
     }
   }, [fetchListings]);
 
+  // Deletes a listing by ID and refreshes the list
+  const deleteListing = useCallback(async (userId, listingId) => {
+    setError(null);
+    try {
+      await deleteListingService(userId, listingId);
+      await fetchListings();
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  }, [fetchListings]);
+
   // Saves a listing as a draft (does not appear in active listings)
   const saveDraft = useCallback(async (userId, data) => {
     setError(null);
@@ -72,6 +85,7 @@ export function ListingsProvider({ children }) {
     listings,
     fetchListings,
     createListing,
+    deleteListing,
     saveDraft,
     isLoading,
     error,
