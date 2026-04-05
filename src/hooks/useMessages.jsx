@@ -159,20 +159,21 @@ export function MessagesProvider({ children }) {
           table: "messages",
           filter: `receiver_id=eq.${userId}`,
         },
-        (payload) => {
+        async (payload) => {
           const newMsg = payload.new;
           const current = activeThreadRef.current;
 
-          // If this message belongs to the active thread, re-fetch full thread (with joins)
+          // If this message belongs to the active thread, await fetchMessages so
+          // markThreadAsRead completes before fetchConversations reads the unread count
           if (
             current &&
             newMsg.listing_id === current.listingId &&
             newMsg.sender_id === current.otherUserId
           ) {
-            fetchMessages(current.listingId, current.otherUserId);
+            await fetchMessages(current.listingId, current.otherUserId);
           }
 
-          // Refresh conversations and unread count from server (authoritative source)
+          // Refresh conversations and unread count after read state is settled
           fetchConversations();
         }
       )
