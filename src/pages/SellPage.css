@@ -1,0 +1,197 @@
+/* SellPage — centered card form for creating a listing */
+
+.sell {
+  min-height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 32px 16px 48px;
+  background: var(--bg);
+}
+
+.sell-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  padding: 36px 40px;
+  width: 100%;
+  max-width: 620px;
+}
+
+.sell-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--ucsd-navy);
+  margin: 0 0 6px;
+}
+
+.sell-subtitle {
+  font-size: 15px;
+  color: #777;
+  margin: 0 0 28px;
+}
+
+/* Form layout */
+.sell-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.sell-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sell-label {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.sell-required {
+  color: #e53e3e;
+  margin-left: 2px;
+}
+
+.sell-optional {
+  font-weight: 400;
+  color: #999;
+  font-size: 13px;
+}
+
+/* Text inputs and selects */
+.sell-input,
+.sell-select {
+  padding: 11px 14px;
+  font-size: 15px;
+  font-family: var(--sans);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  outline: none;
+  background: #fff;
+  color: var(--text);
+  transition: border-color 0.15s;
+}
+
+.sell-input:focus,
+.sell-select:focus {
+  border-color: var(--ucsd-navy);
+}
+
+.sell-input--price {
+  max-width: 180px;
+}
+
+/* Description textarea */
+.sell-textarea {
+  resize: vertical;
+  min-height: 100px;
+  padding: 12px 14px;
+  font-size: 15px;
+  font-family: var(--sans);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.sell-textarea:focus {
+  border-color: var(--ucsd-navy);
+}
+
+.sell-char-count {
+  font-size: 12px;
+  color: #aaa;
+  text-align: right;
+}
+
+/* Image upload overrides inside sell form */
+.sell-image-upload .image-upload__preview {
+  width: 100%;
+  max-width: 320px;
+  height: 200px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.sell-image-upload .image-upload__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Error */
+.sell-error {
+  color: #e53e3e;
+  font-size: 14px;
+  background: #fff5f5;
+  border: 1px solid #fed7d7;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 0;
+}
+
+/* Action buttons row */
+.sell-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+
+.sell-draft-btn {
+  padding: 12px 24px;
+  background: #fff;
+  color: var(--ucsd-navy);
+  font-size: 15px;
+  font-weight: 600;
+  border: 1.5px solid var(--ucsd-navy);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.sell-draft-btn:hover:not(:disabled) {
+  background: rgba(24, 43, 73, 0.05);
+}
+
+.sell-submit-btn {
+  padding: 12px 28px;
+  background: var(--ucsd-navy);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.sell-submit-btn:hover:not(:disabled) {
+  background: #0f1e35;
+}
+
+.sell-draft-btn:disabled,
+.sell-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 520px) {
+  .sell-card {
+    padding: 24px 20px;
+  }
+
+  .sell-actions {
+    flex-direction: column-reverse;
+  }
+
+  .sell-draft-btn,
+  .sell-submit-btn {
+    width: 100%;
+    text-align: center;
+  }
+}

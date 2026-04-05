@@ -1,4 +1,4 @@
-/* MessagesPage — sidebar + chat thread two-column layout */
+/* MessagesPage — three-panel layout: sidebar | chat | meetup spots */
 
 .messages {
   display: flex;
@@ -7,10 +7,10 @@
   border-top: 1px solid var(--border);
 }
 
-/* ── Sidebar ─────────────────────────────────────────────────────────────── */
+/* ── Section 1: Conversation sidebar (independent scroll) ─────────────────── */
 
 .messages-sidebar {
-  width: 320px;
+  width: 300px;
   flex-shrink: 0;
   border-right: 1px solid var(--border);
   display: flex;
@@ -26,6 +26,7 @@
   padding: 16px 20px 12px;
   border-bottom: 1px solid var(--border);
   margin: 0;
+  flex-shrink: 0;
 }
 
 .messages-conv-list {
@@ -43,7 +44,7 @@
   background: none;
   border: none;
   border-bottom: 1px solid var(--border);
-  border-left: 3px solid transparent; /* reserve space to prevent layout shift on active */
+  border-left: 3px solid transparent;
   cursor: pointer;
   text-align: left;
   transition: background 0.15s;
@@ -58,7 +59,6 @@
   border-left-color: var(--ucsd-navy);
 }
 
-/* Avatar with unread dot */
 .messages-conv-avatar-wrap {
   position: relative;
   flex-shrink: 0;
@@ -125,15 +125,7 @@
   text-overflow: ellipsis;
 }
 
-.messages-conv-thumbnail {
-  width: 40px;
-  height: 40px;
-  border-radius: 6px;
-  object-fit: cover;
-  flex-shrink: 0;
-}
-
-/* ── Thread panel ────────────────────────────────────────────────────────── */
+/* ── Section 2: Active chat thread (scrolls to latest message) ────────────── */
 
 .messages-thread {
   flex: 1;
@@ -141,9 +133,9 @@
   flex-direction: column;
   background: #fafafa;
   overflow: hidden;
+  min-width: 0;
 }
 
-/* Thread header */
 .messages-thread-header {
   display: flex;
   align-items: center;
@@ -178,14 +170,7 @@
   color: #888;
 }
 
-.messages-thread-thumbnail {
-  width: 44px;
-  height: 44px;
-  border-radius: 8px;
-  object-fit: cover;
-}
-
-/* Bubble list */
+/* Bubble list — this is the scrollable Section 2 area */
 .messages-bubble-list {
   flex: 1;
   overflow-y: auto;
@@ -195,6 +180,7 @@
   gap: 12px;
 }
 
+/* Regular text bubbles */
 .messages-bubble-wrap {
   display: flex;
   flex-direction: column;
@@ -235,7 +221,110 @@
   padding: 0 4px;
 }
 
-/* Input row */
+/* Meetup proposal bubble */
+.messages-meetup-proposal {
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+  max-width: 240px;
+  width: 100%;
+}
+
+.messages-meetup-img {
+  width: 100%;
+  height: 130px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.messages-meetup-img-placeholder {
+  width: 100%;
+  height: 130px;
+  background: #eee;
+  border-radius: 10px;
+}
+
+.messages-meetup-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ucsd-navy);
+  margin: 0;
+  text-align: center;
+}
+
+.messages-meetup-desc {
+  font-size: 12px;
+  color: #888;
+  margin: 0;
+  text-align: center;
+}
+
+.messages-meetup-pending {
+  font-size: 12px;
+  color: #aaa;
+  font-style: italic;
+  margin: 0;
+}
+
+/* ✓ / ✗ action buttons on proposal */
+.messages-meetup-actions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.messages-meetup-btn {
+  flex: 1;
+  padding: 10px;
+  font-size: 20px;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.messages-meetup-btn--accept {
+  background: #e6f4ea;
+  color: #2e7d32;
+}
+
+.messages-meetup-btn--decline {
+  background: #fdecea;
+  color: #c62828;
+}
+
+.messages-meetup-btn:hover {
+  opacity: 0.8;
+}
+
+/* System messages (confirmed / declined) */
+.messages-system-msg {
+  align-self: center;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 20px;
+  text-align: center;
+}
+
+.messages-system-msg--ok {
+  background: #e6f4ea;
+  color: #2e7d32;
+}
+
+.messages-system-msg--no {
+  background: #fdecea;
+  color: #c62828;
+}
+
+/* Message input row */
 .messages-input-row {
   display: flex;
   align-items: flex-end;
@@ -287,7 +376,127 @@
   cursor: not-allowed;
 }
 
-/* ── Responsive — stack on small screens ────────────────────────────────── */
+/* Empty / loading states */
+.messages-thread-empty,
+.messages-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  color: #aaa;
+  font-size: 14px;
+  padding: 32px;
+  text-align: center;
+}
+
+.messages-loading,
+.messages-error {
+  padding: 24px;
+  font-size: 14px;
+  color: #aaa;
+}
+
+/* ── Section 3: Meetup spot selector (independent scroll) ─────────────────── */
+
+.messages-spots {
+  width: 240px;
+  flex-shrink: 0;
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  overflow-y: auto;
+}
+
+.messages-spots-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ucsd-navy);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--border);
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.messages-spots-list {
+  list-style: none;
+  margin: 0;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Each spot is a clickable card */
+.messages-spot-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  width: 100%;
+  background: #f9f9f9;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 0 0 10px;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.15s, background 0.15s;
+  overflow: hidden;
+}
+
+.messages-spot-card:hover:not(:disabled) {
+  border-color: var(--ucsd-navy);
+  background: rgba(24, 43, 73, 0.04);
+}
+
+.messages-spot-card:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.messages-spot-img {
+  width: 100%;
+  height: 130px;
+  object-fit: cover;
+  display: block;
+  border-radius: 0;
+}
+
+.messages-spot-img-placeholder {
+  width: 100%;
+  height: 130px;
+  background: linear-gradient(135deg, #e8edf2 0%, #d0d9e5 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+}
+
+.messages-spot-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ucsd-navy);
+  margin: 4px 10px 0;
+  text-align: center;
+}
+
+.messages-spot-desc {
+  font-size: 11px;
+  color: #888;
+  margin: 0 10px;
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* ── Responsive ────────────────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .messages-spots {
+    display: none; /* hide on smaller screens */
+  }
+}
 
 @media (max-width: 640px) {
   .messages {
@@ -300,7 +509,6 @@
     border-right: none;
     border-bottom: 1px solid var(--border);
     max-height: 200px;
-    overflow-y: auto;
   }
 
   .messages-thread {
