@@ -34,6 +34,7 @@ are adding
 - Make sure to implement middleware so people cannot access endpoints
 - Add make sure tenants checks work
 - Make sure in UI no user is able to access client ID or client secrets.
+-Make sure there is rate limiting so users cannot crash our backend
 
 ## Handling Learning.md
 - Whenever you fix a problem put the lesson you learn in the Learning.md folder

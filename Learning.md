@@ -31,3 +31,6 @@ Supabase's `.or()` method takes a raw filter string. If user-controlled IDs are 
 
 ## Lesson 10: Use separate fetchIdRefs for independent fetch operations
 If two independent async operations (e.g., fetchConversations and fetchMessages) share one fetchIdRef, one operation can cancel the other's response. Each independent fetch needs its own counter ref.
+
+## Lesson 11: Distinguish initial null from "no results" null
+When a hook's state starts as `null` and the "no results" case also sets it to `null`, conditional UI (like "No results found") triggers prematurely before the user even performs a search. Use a separate `hasSearched` flag to distinguish the two states.
