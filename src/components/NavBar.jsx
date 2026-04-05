@@ -8,6 +8,7 @@
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth.jsx";
 import { useProfile } from "../hooks/useProfile.jsx";
+import { useMessages } from "../hooks/useMessages.jsx";
 import "./NavBar.css";
 
 // Redirects unauthenticated users to login before accessing protected nav actions
@@ -27,6 +28,7 @@ function useProtectedNav() {
 export default function NavBar() {
   const { user, isAuthenticated, login } = useAuth();
   const { profile } = useProfile();
+  const { unreadCount } = useMessages();
   const goTo = useProtectedNav();
   const avatarSrc = profile?.avatar_url || user?.picture || "/default-avatar.png";
 
@@ -54,6 +56,19 @@ export default function NavBar() {
       <button className="nav-btn" onClick={() => goTo("/messages")}>
         Messages
       </button>
+
+      {isAuthenticated && (
+        <button
+          className="nav-notif-btn"
+          onClick={() => goTo("/messages")}
+          aria-label={`${unreadCount} unread messages`}
+        >
+          <img src="/Notification.png" alt="Notifications" className="nav-notif-icon" />
+          {unreadCount > 0 && (
+            <span className="nav-notif-badge">{unreadCount > 99 ? "99+" : unreadCount}</span>
+          )}
+        </button>
+      )}
 
       {/* Login / avatar — right side */}
       {isAuthenticated && user ? (
