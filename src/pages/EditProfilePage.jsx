@@ -1,8 +1,9 @@
 /**
  * EditProfilePage.jsx
- * Pre-filled form that lets the current user update their profile.
- * Shares the same layout and CSS as SignUpPage.
- * Submits to updateProfile() then redirects back to the user's profile.
+ * Profile editing form for existing users.
+ * Pre-fills with current profile data (bio, college, meetup spots, avatar).
+ * Uses updateProfile() from useProfile hook to save changes.
+ * Reuses SignUpPage.css for consistent styling.
  */
 
 import { useState, useRef, useEffect } from "react";
@@ -12,8 +13,15 @@ import { useProfile } from "../hooks/useProfile.jsx";
 import { uploadAvatar } from "../services/storage.js";
 import { sanitizeText } from "../lib/sanitize.js";
 import { COLLEGES } from "../lib/colleges.js";
-import { MEETUP_SPOTS } from "../lib/meetupSpots.js";
 import "./SignUpPage.css";
+
+const MEETUP_SPOTS = [
+  "Geisel Library",
+  "Price Center",
+  "Sun God Lawn",
+  "Panda Express",
+  "PC Loop",
+];
 
 export default function EditProfilePage() {
   const { user } = useAuth();
@@ -21,7 +29,7 @@ export default function EditProfilePage() {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
-  // Pre-fill from existing profile
+  // Pre-fill with current profile data
   const [avatarPreview, setAvatarPreview] = useState(profile?.avatar_url || user?.picture || null);
   const [avatarFile, setAvatarFile] = useState(null);
   const [bio, setBio] = useState(profile?.bio || "");
@@ -30,14 +38,28 @@ export default function EditProfilePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
+  // Update form if profile loads after mount
+  useEffect(() => {
+    if (profile) {
+      setBio(profile.bio || "");
+      setCollege(profile.college || "");
+      setMeetupSpots(profile.meetup_spots || []);
+      if (!avatarFile) setAvatarPreview(profile.avatar_url || user?.picture || null);
+    }
+  }, [profile, user?.picture, avatarFile]);
+
   // Revoke blob URL on unmount to prevent memory leaks
+  const avatarPreviewRef = useRef(avatarPreview);
+  avatarPreviewRef.current = avatarPreview;
   useEffect(() => {
     return () => {
-      if (avatarFile) URL.revokeObjectURL(avatarPreview);
+      if (avatarPreviewRef.current && avatarPreviewRef.current.startsWith("blob:")) {
+        URL.revokeObjectURL(avatarPreviewRef.current);
+      }
     };
-  }, [avatarFile, avatarPreview]);
+  }, []);
 
-  // Preview selected avatar before upload
+  // Preview the selected avatar image before upload
   function handleAvatarChange(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -46,58 +68,76 @@ export default function EditProfilePage() {
       setError("Please select an image file.");
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
+
+    const MAX_SIZE = 5 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
       setError("Image must be under 5 MB.");
       return;
     }
 
-    if (avatarFile) URL.revokeObjectURL(avatarPreview);
+    if (avatarPreview && avatarPreview.startsWith("blob:")) {
+      URL.revokeObjectURL(avatarPreview);
+    }
+
     setAvatarFile(file);
     setAvatarPreview(URL.createObjectURL(file));
     setError("");
   }
 
-  // Toggle a meetup spot on or off (stores the name string)
-  function toggleMeetupSpot(spotName) {
+  // Toggle a meetup spot on or off
+  function toggleMeetupSpot(spot) {
     setMeetupSpots((prev) =>
-      prev.includes(spotName) ? prev.filter((s) => s !== spotName) : [...prev, spotName]
+      prev.includes(spot) ? prev.filter((s) => s !== spot) : [...prev, spot]
     );
   }
 
+  // Saves profile changes
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
 
-    if (!college) {
-      setError("Please select your college.");
+    if (!user?.sub) {
+      setError("You must be logged in to edit your profile.");
       return;
     }
 
-    const sanitizedBio = bio.trim() ? sanitizeText(bio.trim()) : "";
+    if (!college || !COLLEGES.some((c) => c.name === college)) {
+      setError("Please select a valid college.");
+      return;
+    }
+
+    let sanitizedBio = "";
+    try {
+      sanitizedBio = bio.trim() ? sanitizeText(bio.trim()) : "";
+    } catch (err) {
+      setError(err.message);
+      return;
+    }
+
+    const validSpots = meetupSpots.filter((s) => MEETUP_SPOTS.includes(s));
 
     setIsSubmitting(true);
     try {
-      let avatarUrl = profile?.avatar_url || user?.picture || "";
-
+      // Upload new avatar if one was selected
+      let avatarUrl = profile?.avatar_url || user.picture || "";
       if (avatarFile) {
         try {
           avatarUrl = await uploadAvatar(user.sub, avatarFile);
         } catch {
-          // Upload failed — keep existing avatar silently
+          avatarUrl = profile?.avatar_url || user.picture || "";
         }
       }
 
       await updateProfile({
-        name: profile?.name || user?.name,
         avatar_url: avatarUrl,
         bio: sanitizedBio,
         college,
-        meetup_spots: meetupSpots,
+        meetup_spots: validSpots,
       });
 
       navigate(`/profile/${encodeURIComponent(user.sub)}`);
-    } catch (err) {
-      setError(err?.message || "Failed to save profile. Please try again.");
+    } catch {
+      setError("Failed to update profile. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -107,13 +147,13 @@ export default function EditProfilePage() {
     <div className="signup">
       <div className="signup-card">
         <h1 className="signup-title">Edit Profile</h1>
-        <p className="signup-subtitle">Update your info below.</p>
+        <p className="signup-subtitle">Update your profile information.</p>
 
         <form className="signup-form" onSubmit={handleSubmit} noValidate>
 
           {/* Profile photo */}
           <section className="signup-section">
-            <label className="signup-label">Profile Photo <span className="signup-optional">(optional)</span></label>
+            <label className="signup-label">Profile Photo</label>
             <div
               className="signup-avatar-wrap"
               onClick={() => fileInputRef.current?.click()}
@@ -180,14 +220,13 @@ export default function EditProfilePage() {
             <div className="signup-spots">
               {MEETUP_SPOTS.map((spot) => (
                 <button
-                  key={spot.name}
+                  key={spot}
                   type="button"
-                  className={`signup-spot-card ${meetupSpots.includes(spot.name) ? "signup-spot-card--selected" : ""}`}
-                  onClick={() => toggleMeetupSpot(spot.name)}
-                  aria-pressed={meetupSpots.includes(spot.name)}
+                  className={`signup-spot-btn ${meetupSpots.includes(spot) ? "signup-spot-btn--selected" : ""}`}
+                  onClick={() => toggleMeetupSpot(spot)}
+                  aria-pressed={meetupSpots.includes(spot)}
                 >
-                  <img src={spot.image} alt={spot.name} className="signup-spot-img" />
-                  <span className="signup-spot-name">{spot.name}</span>
+                  {spot}
                 </button>
               ))}
             </div>

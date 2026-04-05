@@ -45,6 +45,14 @@ function App() {
     <Layout>
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route
+          path="/profile/edit"
+          element={
+            <RequireAuth>
+              <EditProfilePage />
+            </RequireAuth>
+          }
+        />
         <Route path="/profile/:id" element={<ProfilePage />} />
         <Route
           path="/signup"

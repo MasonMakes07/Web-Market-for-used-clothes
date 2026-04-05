@@ -100,6 +100,7 @@ Create storage buckets: `avatars` (public read) and `listing-images` (public rea
 | **MokeyCodes** | Database -- Supabase schema, tables, RLS policies, storage |
 | **alexgilbreath** | Frontend + UI -- React components, pages, visual layout |
 | **masonbrito** | Backend + Integration -- Auth0, hooks, services, API wiring |
+| **Claude (AI)** | Contributor -- Auth flow fixes, profile page, code review, architecture |
 
 ## License
 
