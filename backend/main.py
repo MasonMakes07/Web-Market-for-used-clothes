@@ -82,7 +82,7 @@ app = FastAPI(
 # Allow the Vite dev server to call this backend without CORS errors.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(","),
+    allow_origins=[o.strip() for o in os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(",")],
     allow_credentials=True,
     allow_methods=["GET"],
     allow_headers=["*"],
