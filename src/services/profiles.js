@@ -52,7 +52,10 @@ export async function createProfile(userId, profileData) {
     .select()
     .single();
 
-  if (error) throw new Error("Failed to create profile.");
+  if (error) {
+    console.error("createProfile Supabase error:", error);
+    throw new Error(`Failed to create profile: ${error.message} (code: ${error.code})`);
+  }
   return data;
 }
 

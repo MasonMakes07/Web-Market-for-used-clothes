@@ -78,6 +78,14 @@ function App() {
             </RequireAuth>
           }
         />
+        <Route
+          path="/profile/edit"
+          element={
+            <RequireAuth>
+              <EditProfilePage />
+            </RequireAuth>
+          }
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Layout>
