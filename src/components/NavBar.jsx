@@ -7,6 +7,7 @@
 
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth.jsx";
+import { useProfile } from "../hooks/useProfile.jsx";
 import "./NavBar.css";
 
 // Redirects unauthenticated users to login before accessing protected nav actions
@@ -25,7 +26,9 @@ function useProtectedNav() {
 
 export default function NavBar() {
   const { user, isAuthenticated, login } = useAuth();
+  const { profile } = useProfile();
   const goTo = useProtectedNav();
+  const avatarSrc = profile?.avatar_url || user?.picture || "/default-avatar.png";
 
   return (
     <nav className="navbar">
@@ -60,7 +63,7 @@ export default function NavBar() {
           aria-label="Your profile"
         >
           <img
-            src={user.picture || "/default-avatar.png"}
+            src={avatarSrc}
             alt={user.name}
             className="nav-avatar"
           />

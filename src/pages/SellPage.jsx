@@ -9,6 +9,7 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth.jsx";
+import { useProfile } from "../hooks/useProfile.jsx";
 import { useListings } from "../hooks/useListings.jsx";
 import { usePriceHint } from "../hooks/usePriceHint.js";
 import { uploadListingImage } from "../services/storage.js";
@@ -21,6 +22,7 @@ const MAX_TAGS = 20;
 
 export default function SellPage() {
   const { user } = useAuth();
+  const { profile } = useProfile();
   const { createListing } = useListings();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
@@ -188,7 +190,7 @@ export default function SellPage() {
       <div className="sell-header">
         <div className="sell-header-user">
           <img
-            src={user?.picture || "/default-avatar.png"}
+            src={profile?.avatar_url || user?.picture || "/default-avatar.png"}
             alt={user?.name || "You"}
             className="sell-header-avatar"
           />
