@@ -11,7 +11,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth.jsx";
-import { useProfile } from "../hooks/useProfile.js";
+import { useProfile } from "../hooks/useProfile.jsx";
 import { uploadAvatar } from "../services/storage.js";
 import { sanitizeText } from "../lib/sanitize.js";
 import { COLLEGES } from "../lib/colleges.js";
