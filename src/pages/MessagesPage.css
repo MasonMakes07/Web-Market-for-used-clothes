@@ -125,6 +125,20 @@
   text-overflow: ellipsis;
 }
 
+.messages-conv-preview--new {
+  color: var(--ucsd-navy);
+  font-style: italic;
+}
+
+.messages-new-thread-hint {
+  align-self: center;
+  color: #bbb;
+  font-size: 13px;
+  font-style: italic;
+  margin: auto;
+  text-align: center;
+}
+
 /* ── Section 2: Active chat thread (scrolls to latest message) ────────────── */
 
 .messages-thread {

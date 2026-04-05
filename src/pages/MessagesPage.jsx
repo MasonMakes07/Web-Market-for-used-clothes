@@ -483,10 +483,36 @@ export default function MessagesPage() {
       {/* ── Section 1: Conversation list (independently scrollable) ── */}
       <aside className="messages-sidebar">
         <h2 className="messages-sidebar-title">Messages</h2>
-        {conversations.length === 0 ? (
+        {conversations.length === 0 && !navState.sellerId ? (
           <p className="messages-empty">No conversations yet.</p>
         ) : (
           <ul className="messages-conv-list">
+            {/* Pending new conversation — shown when arriving from Message Seller with no prior thread */}
+            {navState.sellerId && !conversations.find(
+              (c) => c.listingId === navState.listingId && c.otherUserId === navState.sellerId
+            ) && (
+              <li>
+                <button
+                  className="messages-conv-item messages-conv-item--active"
+                  onClick={() => setActiveThread(navState.listingId, navState.sellerId)}
+                >
+                  <div className="messages-conv-avatar-wrap">
+                    <img
+                      src={navState.sellerAvatar || "/default-avatar.png"}
+                      alt={navState.sellerName || "Seller"}
+                      className="messages-conv-avatar"
+                    />
+                  </div>
+                  <div className="messages-conv-info">
+                    <div className="messages-conv-header">
+                      <span className="messages-conv-name">{navState.sellerName || "Seller"}</span>
+                    </div>
+                    <span className="messages-conv-listing">{navState.listingTitle || ""}</span>
+                    <span className="messages-conv-preview messages-conv-preview--new">New conversation</span>
+                  </div>
+                </button>
+              </li>
+            )}
             {conversations.map((conv) => {
               const isActive =
                 activeThread &&
@@ -540,6 +566,11 @@ export default function MessagesPage() {
             </div>
 
             <div className="messages-bubble-list">
+              {messages.length === 0 && (
+                <p className="messages-new-thread-hint">
+                  Say hi! Ask if the item is still available.
+                </p>
+              )}
               {messages.map((msg) => (
                 <MessageBubble
                   key={msg.id}
