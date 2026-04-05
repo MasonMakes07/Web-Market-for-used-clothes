@@ -300,6 +300,7 @@ export default function MessagesPage() {
   } = useMessages();
 
   const location = useLocation();
+  const navState = location.state || {};
   const [input, setInput] = useState("");
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [proposedDate, setProposedDate] = useState("");
@@ -524,17 +525,17 @@ export default function MessagesPage() {
 
       {/* ── Section 2: Active chat thread (scrolls to latest message) ── */}
       <div className="messages-thread">
-        {activeConv ? (
+        {activeThread ? (
           <>
             <div className="messages-thread-header">
               <img
-                src={activeConv.otherUser?.avatar_url || "/default-avatar.png"}
-                alt={activeConv.otherUser?.name || "User"}
+                src={activeConv?.otherUser?.avatar_url || navState.sellerAvatar || "/default-avatar.png"}
+                alt={activeConv?.otherUser?.name || navState.sellerName || "User"}
                 className="messages-thread-avatar"
               />
               <div className="messages-thread-header-info">
-                <span className="messages-thread-name">{activeConv.otherUser?.name || "Unknown"}</span>
-                <span className="messages-thread-listing">{activeConv.listing?.title || ""}</span>
+                <span className="messages-thread-name">{activeConv?.otherUser?.name || navState.sellerName || "Unknown"}</span>
+                <span className="messages-thread-listing">{activeConv?.listing?.title || navState.listingTitle || ""}</span>
               </div>
             </div>
 
@@ -621,6 +622,7 @@ export default function MessagesPage() {
             <p>Select a conversation to start messaging.</p>
           </div>
         )}
+
       </div>
 
       {/* ── Section 3: Meetup spot selector (independently scrollable) ── */}
