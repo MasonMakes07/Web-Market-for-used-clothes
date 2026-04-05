@@ -184,20 +184,21 @@ export function MessagesProvider({ children }) {
           table: "messages",
           filter: `sender_id=eq.${userId}`,
         },
-        (payload) => {
+        async (payload) => {
           const newMsg = payload.new;
           const current = activeThreadRef.current;
 
-          // If the user sent a message in the active thread, re-fetch for full joins
+          // Wait for fetchMessages (which runs markThreadAsRead) before fetching
+          // conversations — prevents unread count from briefly flashing on send
           if (
             current &&
             newMsg.listing_id === current.listingId &&
             newMsg.receiver_id === current.otherUserId
           ) {
-            fetchMessages(current.listingId, current.otherUserId);
+            await fetchMessages(current.listingId, current.otherUserId);
           }
 
-          // Refresh conversation list
+          // Refresh conversation list after read state is up to date
           fetchConversations();
         }
       )
