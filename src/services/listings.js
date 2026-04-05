@@ -34,7 +34,7 @@ export async function getListings() {
 
   const { data, error } = await supabase
     .from("listings")
-    .select("*, profiles:seller_id(name, avatar_url)")
+    .select("*, seller:seller_id(id, name, avatar_url, college)")
     .eq("status", "active")
     .order("created_at", { ascending: false });
 
@@ -48,7 +48,7 @@ export async function getListingById(id) {
 
   const { data, error } = await supabase
     .from("listings")
-    .select("*, profiles:seller_id(name, avatar_url)")
+    .select("*, seller:seller_id(id, name, avatar_url, college)")
     .eq("id", id)
     .maybeSingle();
 
