@@ -6,10 +6,7 @@
         },
         "backend": {
             "entrypoint": "backend",
-            "routePrefix": "/_/backend",
-            "config": {
-            "runtime": "vercel-python@3.11"
-        }
+            "routePrefix": "/_/backend"
     }
 }
 }
