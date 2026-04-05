@@ -471,7 +471,7 @@ export default function MessagesPage() {
   if (error) {
     return (
       <div className="messages">
-        <p className="messages-error">Failed to load messages. Please try again.</p>
+        <p className="messages-error">{error}</p>
       </div>
     );
   }

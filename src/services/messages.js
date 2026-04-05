@@ -90,7 +90,7 @@ export async function getConversations(userId) {
     .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
     .order("created_at", { ascending: false });
 
-  if (error) throw new Error("Failed to fetch conversations.");
+  if (error) throw new Error(`Failed to fetch conversations: ${error.message} (code: ${error.code})`);
   if (!data || data.length === 0) return [];
 
   // Group by thread key (listing_id + other_user_id) and keep the latest message
