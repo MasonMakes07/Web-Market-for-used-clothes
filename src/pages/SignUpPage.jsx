@@ -31,7 +31,8 @@ export default function SignUpPage() {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
-  const [avatarPreview, setAvatarPreview] = useState(null);
+  // Pre-fill with Auth0 profile picture (e.g. Google photo) if available
+  const [avatarPreview, setAvatarPreview] = useState(user?.picture || null);
   const [avatarFile, setAvatarFile] = useState(null);
   const [bio, setBio] = useState("");
   const [college, setCollege] = useState("");
@@ -81,10 +82,6 @@ export default function SignUpPage() {
     e.preventDefault();
     setError("");
 
-    if (!avatarFile) {
-      setError("A profile photo is required.");
-      return;
-    }
     if (!college) {
       setError("Please select your college.");
       return;
@@ -95,14 +92,15 @@ export default function SignUpPage() {
 
     setIsSubmitting(true);
     try {
-      // Upload avatar to Supabase Storage
-      let avatarUrl;
-      try {
-        avatarUrl = await uploadAvatar(user.sub, avatarFile);
-      } catch {
-        setError("Failed to upload photo. Please try again.");
-        setIsSubmitting(false);
-        return;
+      // Try to upload a custom photo if one was selected, otherwise use Auth0 picture
+      let avatarUrl = user.picture || "";
+      if (avatarFile) {
+        try {
+          avatarUrl = await uploadAvatar(user.sub, avatarFile);
+        } catch {
+          // Upload failed — fall back to Auth0 picture silently
+          avatarUrl = user.picture || "";
+        }
       }
 
       // Create the profile row
@@ -113,8 +111,17 @@ export default function SignUpPage() {
         college,
         meetup_spots: meetupSpots,
       });
+
+      // Mark profile as created so useAuth skips the DB check on future logins
+      localStorage.setItem(`triton_thrift_profile_${user.sub}`, "1");
       navigate("/");
-    } catch {
+    } catch (err) {
+      // If profile already exists (e.g. user navigated here directly), cache and go home
+      if (err?.message?.includes("duplicate") || err?.code === "23505") {
+        localStorage.setItem(`triton_thrift_profile_${user.sub}`, "1");
+        navigate("/");
+        return;
+      }
       setError("Failed to create profile. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -131,7 +138,7 @@ export default function SignUpPage() {
 
           {/* Profile photo */}
           <section className="signup-section">
-            <label className="signup-label">Profile Photo <span className="signup-required">*</span></label>
+            <label className="signup-label">Profile Photo <span className="signup-optional">(optional — using your Google photo by default)</span></label>
             <div
               className="signup-avatar-wrap"
               onClick={() => fileInputRef.current?.click()}

@@ -73,6 +73,7 @@ export async function createListing(userId, listingData) {
       condition: sanitized.condition,
       description: sanitized.description || null,
       image_url: sanitized.image_url,
+      tags: Array.isArray(listingData.tags) ? listingData.tags : [],
       seller_id: userId,
       status: "active",
     })

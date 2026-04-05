@@ -23,7 +23,8 @@ export default function HomePage() {
     return listings.filter(
       (l) =>
         l.title?.toLowerCase().includes(q) ||
-        l.category?.toLowerCase().includes(q)
+        l.category?.toLowerCase().includes(q) ||
+        l.tags?.some((tag) => tag.toLowerCase().includes(q))
     );
   }, [query, listings]);
 
