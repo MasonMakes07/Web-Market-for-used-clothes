@@ -36,13 +36,18 @@ export default function ListingModal({ listing, onClose }) {
     if (e.target === e.currentTarget) onClose();
   }
 
-  // Redirect to messages if authenticated, otherwise trigger Auth0 login
+  // Redirect to messages with listing/seller context, or trigger Auth0 login
   function handleMessageSeller() {
     if (!isAuthenticated) {
       login();
     } else {
       onClose();
-      navigate("/messages");
+      navigate("/messages", {
+        state: {
+          listingId: listing.id,
+          sellerId: listing.seller_id || listing.seller?.id,
+        },
+      });
     }
   }
 
@@ -103,7 +108,7 @@ export default function ListingModal({ listing, onClose }) {
 
           {/* Seller info — close modal before navigating to profile */}
           <div className="modal-seller">
-            <UserBar seller={listing.seller} onNavigate={onClose} />
+            <UserBar seller={listing.seller} sellerId={listing.seller_id} onNavigate={onClose} />
           </div>
 
           <button className="modal-message-btn" onClick={handleMessageSeller}>

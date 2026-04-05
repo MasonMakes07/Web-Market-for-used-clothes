@@ -1,69 +1,18 @@
 /**
  * MessagesPage.jsx
  * Messaging page — left sidebar of conversations, right panel for active chat thread.
- * Messages update in real-time via Supabase Realtime (wired by Mason, Issue #14).
- *
- * TODO: Replace MOCK_CONVERSATIONS and MOCK_MESSAGES with useMessages() hook (Issue #14).
+ * Messages update in real-time via Supabase Realtime (wired through useMessages hook).
  */
 
 import { useState, useRef, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth.jsx";
+import { useMessages } from "../hooks/useMessages.jsx";
 import "./MessagesPage.css";
-
-// ---------------------------------------------------------------------------
-// Mock data — matches the real DB shape (messages table joined with profiles)
-// Replace with: const { conversations, messages, sendMessage } = useMessages();
-// ---------------------------------------------------------------------------
-const CURRENT_USER_ID = "me";
-
-const MOCK_CONVERSATIONS = [
-  {
-    id: "conv-1",
-    otherUser: { id: "user-2", name: "Alex Johnson", avatar_url: "https://i.pravatar.cc/150?img=5" },
-    listing: { id: "1", title: "Vintage Levi Denim Jacket", image_url: "https://picsum.photos/seed/jacket1/60/60" },
-    lastMessage: "Is this still available?",
-    lastMessageAt: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
-    unread: true,
-  },
-  {
-    id: "conv-2",
-    otherUser: { id: "user-3", name: "Maria Garcia", avatar_url: "https://i.pravatar.cc/150?img=9" },
-    listing: { id: "2", title: "Nike Air Force 1 Size 10", image_url: "https://picsum.photos/seed/shoes1/60/60" },
-    lastMessage: "Can we meet at Geisel at 3pm?",
-    lastMessageAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    unread: false,
-  },
-  {
-    id: "conv-3",
-    otherUser: { id: "user-4", name: "Jake Kim", avatar_url: "https://i.pravatar.cc/150?img=12" },
-    listing: { id: "3", title: "Floral Summer Dress", image_url: "https://picsum.photos/seed/dress1/60/60" },
-    lastMessage: "Sounds good, see you then!",
-    lastMessageAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    unread: false,
-  },
-];
-
-const MOCK_MESSAGES = {
-  "conv-1": [
-    { id: "m1", sender_id: "user-2", content: "Hey! Is this jacket still available?", created_at: new Date(Date.now() - 20 * 60 * 1000).toISOString() },
-    { id: "m2", sender_id: CURRENT_USER_ID, content: "Yes it is! Are you interested?", created_at: new Date(Date.now() - 15 * 60 * 1000).toISOString() },
-    { id: "m3", sender_id: "user-2", content: "Is this still available?", created_at: new Date(Date.now() - 10 * 60 * 1000).toISOString() },
-  ],
-  "conv-2": [
-    { id: "m4", sender_id: CURRENT_USER_ID, content: "Hi! I'm interested in the Air Force 1s.", created_at: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString() },
-    { id: "m5", sender_id: "user-3", content: "Great! They're still available. Size 10 fits true to size.", created_at: new Date(Date.now() - 2.5 * 60 * 60 * 1000).toISOString() },
-    { id: "m6", sender_id: CURRENT_USER_ID, content: "Perfect, can we meet somewhere on campus?", created_at: new Date(Date.now() - 2.2 * 60 * 60 * 1000).toISOString() },
-    { id: "m7", sender_id: "user-3", content: "Can we meet at Geisel at 3pm?", created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() },
-  ],
-  "conv-3": [
-    { id: "m8", sender_id: "user-4", content: "Hi, is the dress still for sale?", created_at: new Date(Date.now() - 26 * 60 * 60 * 1000).toISOString() },
-    { id: "m9", sender_id: CURRENT_USER_ID, content: "Yes! $18, meet at Price Center?", created_at: new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString() },
-    { id: "m10", sender_id: "user-4", content: "Sounds good, see you then!", created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() },
-  ],
-};
 
 // Formats a timestamp as a short relative time (e.g. "10m ago", "2h ago")
 function formatTime(dateStr) {
+  if (!dateStr) return "";
   const diff = Math.max(0, Date.now() - new Date(dateStr).getTime());
   const mins = Math.floor(diff / 60000);
   if (mins < 60) return `${mins}m ago`;
@@ -74,38 +23,60 @@ function formatTime(dateStr) {
 
 export default function MessagesPage() {
   const { user } = useAuth();
-  // TODO: replace CURRENT_USER_ID with user?.sub after Issue #14 is wired up
-  const [activeConvId, setActiveConvId] = useState(MOCK_CONVERSATIONS[0].id);
+  const userId = user?.sub || null;
+  const {
+    conversations,
+    messages,
+    activeThread,
+    sendMessage,
+    setActiveThread,
+    isLoading,
+    error,
+  } = useMessages();
+
+  const location = useLocation();
   const [input, setInput] = useState("");
-  const [messagesByConv, setMessagesByConv] = useState(MOCK_MESSAGES);
   const bottomRef = useRef(null);
 
-  const activeConv = MOCK_CONVERSATIONS.find((c) => c.id === activeConvId);
-  const messages = messagesByConv[activeConvId] ?? [];
+  // Open thread from ListingModal's "Message Seller" navigation state
+  useEffect(() => {
+    if (location.state?.listingId && location.state?.sellerId) {
+      setActiveThread(location.state.listingId, location.state.sellerId);
+    }
+  }, [location.state, setActiveThread]);
 
-  // Scroll to the latest message whenever the active conversation or messages change
+  // Select the first conversation by default if none is active
+  useEffect(() => {
+    if (!activeThread && conversations.length > 0) {
+      const first = conversations[0];
+      setActiveThread(first.listingId, first.otherUserId);
+    }
+  }, [activeThread, conversations, setActiveThread]);
+
+  // Scroll to the latest message whenever messages change
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [activeConvId, messages.length]);
+  }, [messages.length]);
 
-  // Send a new message — optimistically adds to local state
-  // TODO: Replace with sendMessage() from useMessages hook
-  function handleSend() {
+  // Find the active conversation object for the header
+  const activeConv = conversations.find(
+    (c) =>
+      activeThread &&
+      c.listingId === activeThread.listingId &&
+      c.otherUserId === activeThread.otherUserId
+  );
+
+  // Send a message through the real service (sanitized server-side)
+  async function handleSend() {
     const content = input.trim();
-    if (!content) return;
+    if (!content || !activeThread) return;
 
-    const newMessage = {
-      id: crypto.randomUUID(),
-      sender_id: CURRENT_USER_ID,
-      content,
-      created_at: new Date().toISOString(),
-    };
-
-    setMessagesByConv((prev) => ({
-      ...prev,
-      [activeConvId]: [...(prev[activeConvId] ?? []), newMessage],
-    }));
     setInput("");
+    try {
+      await sendMessage(content, activeThread.otherUserId, activeThread.listingId);
+    } catch {
+      // Error is set in useMessages context
+    }
   }
 
   // Allow sending with Enter (Shift+Enter for newline)
@@ -116,73 +87,89 @@ export default function MessagesPage() {
     }
   }
 
+  if (isLoading && conversations.length === 0) {
+    return (
+      <div className="messages">
+        <p className="messages-loading">Loading messages...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="messages">
+        <p className="messages-error">Failed to load messages. Please try again.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="messages">
       {/* Left sidebar — conversation list */}
       <aside className="messages-sidebar">
         <h2 className="messages-sidebar-title">Messages</h2>
-        <ul className="messages-conv-list">
-          {MOCK_CONVERSATIONS.map((conv) => (
-            <li key={conv.id}>
-              <button
-                className={`messages-conv-item ${activeConvId === conv.id ? "messages-conv-item--active" : ""}`}
-                onClick={() => setActiveConvId(conv.id)}
-              >
-                <div className="messages-conv-avatar-wrap">
-                  <img
-                    src={conv.otherUser.avatar_url}
-                    alt={conv.otherUser.name}
-                    className="messages-conv-avatar"
-                  />
-                  {conv.unread && <span className="messages-conv-unread-dot" />}
-                </div>
+        {conversations.length === 0 ? (
+          <p className="messages-empty">No conversations yet.</p>
+        ) : (
+          <ul className="messages-conv-list">
+            {conversations.map((conv) => {
+              const isActive =
+                activeThread &&
+                conv.listingId === activeThread.listingId &&
+                conv.otherUserId === activeThread.otherUserId;
 
-                <div className="messages-conv-info">
-                  <div className="messages-conv-header">
-                    <span className="messages-conv-name">{conv.otherUser.name}</span>
-                    <span className="messages-conv-time">{formatTime(conv.lastMessageAt)}</span>
-                  </div>
-                  <span className="messages-conv-listing">{conv.listing.title}</span>
-                  <span className="messages-conv-preview">{conv.lastMessage}</span>
-                </div>
+              return (
+                <li key={`${conv.listingId}-${conv.otherUserId}`}>
+                  <button
+                    className={`messages-conv-item ${isActive ? "messages-conv-item--active" : ""}`}
+                    onClick={() => setActiveThread(conv.listingId, conv.otherUserId)}
+                  >
+                    <div className="messages-conv-avatar-wrap">
+                      <img
+                        src={conv.otherUser?.avatar_url || "/default-avatar.png"}
+                        alt={conv.otherUser?.name || "User"}
+                        className="messages-conv-avatar"
+                      />
+                      {conv.unread > 0 && <span className="messages-conv-unread-dot" />}
+                    </div>
 
-                <img
-                  src={conv.listing.image_url}
-                  alt={conv.listing.title}
-                  className="messages-conv-thumbnail"
-                />
-              </button>
-            </li>
-          ))}
-        </ul>
+                    <div className="messages-conv-info">
+                      <div className="messages-conv-header">
+                        <span className="messages-conv-name">{conv.otherUser?.name || "Unknown"}</span>
+                        <span className="messages-conv-time">{formatTime(conv.lastMessage?.created_at)}</span>
+                      </div>
+                      <span className="messages-conv-listing">{conv.listing?.title || ""}</span>
+                      <span className="messages-conv-preview">{conv.lastMessage?.content}</span>
+                    </div>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </aside>
 
       {/* Right panel — active chat thread */}
       <div className="messages-thread">
-        {activeConv && (
+        {activeConv ? (
           <>
             {/* Thread header */}
             <div className="messages-thread-header">
               <img
-                src={activeConv.otherUser.avatar_url}
-                alt={activeConv.otherUser.name}
+                src={activeConv.otherUser?.avatar_url || "/default-avatar.png"}
+                alt={activeConv.otherUser?.name || "User"}
                 className="messages-thread-avatar"
               />
               <div className="messages-thread-header-info">
-                <span className="messages-thread-name">{activeConv.otherUser.name}</span>
-                <span className="messages-thread-listing">{activeConv.listing.title}</span>
+                <span className="messages-thread-name">{activeConv.otherUser?.name || "Unknown"}</span>
+                <span className="messages-thread-listing">{activeConv.listing?.title || ""}</span>
               </div>
-              <img
-                src={activeConv.listing.image_url}
-                alt={activeConv.listing.title}
-                className="messages-thread-thumbnail"
-              />
             </div>
 
             {/* Message bubbles */}
             <div className="messages-bubble-list">
               {messages.map((msg) => {
-                const isMine = msg.sender_id === CURRENT_USER_ID;
+                const isMine = msg.sender_id === userId;
                 return (
                   <div
                     key={msg.id}
@@ -219,6 +206,10 @@ export default function MessagesPage() {
               </button>
             </div>
           </>
+        ) : (
+          <div className="messages-thread-empty">
+            <p>Select a conversation to start messaging.</p>
+          </div>
         )}
       </div>
     </div>

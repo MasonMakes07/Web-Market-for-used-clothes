@@ -11,6 +11,9 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth.jsx";
+import { useProfile } from "../hooks/useProfile.js";
+import { uploadAvatar } from "../services/storage.js";
+import { sanitizeText } from "../lib/sanitize.js";
 import { COLLEGES } from "../lib/colleges.js";
 import "./SignUpPage.css";
 
@@ -24,6 +27,7 @@ const MEETUP_SPOTS = [
 
 export default function SignUpPage() {
   const { user } = useAuth();
+  const { createProfile } = useProfile();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
@@ -86,18 +90,32 @@ export default function SignUpPage() {
       return;
     }
 
-    // Sanitize bio — strip any HTML/script tags before sending to backend
-    const sanitizedBio = bio.replace(/<[^>]*>/g, "").trim();
+    // Sanitize bio using the project's sanitizeText (catches code patterns, strips HTML)
+    const sanitizedBio = bio.trim() ? sanitizeText(bio.trim()) : "";
 
     setIsSubmitting(true);
     try {
-      // TODO: Replace with real uploadAvatar + createProfile calls when Mason's hooks are ready
-      // const avatarUrl = await uploadAvatar(user.sub, avatarFile);
-      // await createProfile({ name: user.name, avatar_url: avatarUrl, bio: sanitizedBio, college, meetup_spots: meetupSpots });
-      void sanitizedBio; // remove this line when wired up
+      // Upload avatar to Supabase Storage
+      let avatarUrl;
+      try {
+        avatarUrl = await uploadAvatar(user.sub, avatarFile);
+      } catch {
+        setError("Failed to upload photo. Please try again.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Create the profile row
+      await createProfile({
+        name: user.name,
+        avatar_url: avatarUrl,
+        bio: sanitizedBio,
+        college,
+        meetup_spots: meetupSpots,
+      });
       navigate("/");
-    } catch (err) {
-      setError("Something went wrong. Please try again.");
+    } catch {
+      setError("Failed to create profile. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
