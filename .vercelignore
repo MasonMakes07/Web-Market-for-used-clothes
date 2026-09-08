@@ -1,0 +1,8 @@
+.env
+.env.*
+backend/.env
+backend/.env.*
+.venv
+backend/runtime
+test-results
+playwright-report

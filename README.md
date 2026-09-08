@@ -1,106 +1,47 @@
-# Triton Thrift
+# Tritons Thrifts
 
-A campus marketplace web app for UCSD students to buy and sell used clothing locally. Features in-person meetup coordination, AI-assisted pricing, real-time messaging, and a seller rating system.
+A phone-first UCSD marketplace for secondhand clothing, campus finds, and meetup planning.
 
-## Features
+**Current release is a working device preview.** Listings, saved items, messages, and profile edits stay in this browser. UCSD sign-in and public multi-user trading are not live yet. The scanner uses only OpenAI and requires a verified campus identity and a separately approved student account.
 
-- **Browse & Search** -- Searchable grid of active listings with category and condition filters
-- **Listing Details** -- Modal popup with full item info, seller profile, and message button
-- **User Profiles** -- Avatar, bio, college affiliation, meetup spots, ratings, and listings
-- **Real-Time Messaging** -- Supabase Realtime-powered chat between buyers and sellers
-- **Seller Ratings** -- 1-5 star rating system with written reviews
-- **AI Price Suggestions** -- Browser Use-powered price hints from Depop and eBay (bonus feature)
-- **Auth0 Login** -- Google OAuth authentication
-- **College Identity** -- UCSD college selector (Revelle, Muir, Marshall, Warren, Roosevelt, Sixth, Seventh, Eighth)
+## Try it locally
 
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Frontend | React 19, Vite 8, React Router 7 |
-| Auth | Auth0 (OAuth / Google) |
-| Database | Supabase (PostgreSQL) |
-| Storage | Supabase Storage (avatars, listing images) |
-| Real-Time | Supabase Realtime (messaging) |
-| Backend | Python FastAPI + Browser Use SDK |
-
-## Project Structure
-
-```
-src/
-  components/    -- Reusable UI (ListingCard, ListingModal, NavBar, UserBar, etc.)
-  pages/         -- Page components (Home, Profile, SignUp, Messages, Sell)
-  hooks/         -- React context hooks (useAuth, useProfile, useListings, useMessages)
-  services/      -- Supabase service layer (listings, messages, profiles, ratings, storage)
-  lib/           -- Config (supabase.js, auth0.jsx, colleges.js, sanitize.js)
-backend/
-  main.py        -- FastAPI server with /price-hint endpoint
+```sh
+git clone https://github.com/MasonMakes07/Web-Market-for-used-clothes.git
+cd Web-Market-for-used-clothes
+npm ci
+npm run dev:phone
 ```
 
-## Getting Started
+Open the printed Network address on the same Wi-Fi, or use `http://localhost:5173` on the Mac. The app's preview needs no secrets. Production phone installation and sign-in need HTTPS.
 
-### Prerequisites
+## Included
 
-- Node.js 18+
-- Python 3.11+
-- Auth0 account (Single Page Application)
-- Supabase project
+- Discover, saved items, search and campus/category/price filters.
+- Six-photo uploads, camera input, editable listings, and reserved/sold status.
+- Local conversations and campus pickup planning, Google Calendar links and `.ics` exports.
+- OpenAI photo-to-listing drafts and optional source-linked asking-price research.
+- Per-account scan caching, persistent daily/monthly quotas, and signed campus identity checks.
+- Home-screen installation assets and a private-data-free offline fallback.
 
-### Setup
+## Setup and launch
 
-1. **Clone and install**
-   ```bash
-   git clone https://github.com/MasonMakes07/Video-game-for-hackathon.git
-   cd "Video game for hackathon"
-   npm install
-   ```
+- [Phone app instructions](PHONE_APP.md)
+- [UCSD sign-in setup and feature status](UCSD_SIGN_IN.md)
+- [Hosting and OpenAI budget](LAUNCH.md)
+- [Initial iOS plan](IOS_APP_PLAN.md)
 
-2. **Configure environment variables**
-   ```bash
-   cp .env.example .env
-   ```
-   Fill in your values:
-   ```
-   VITE_SUPABASE_URL=your_supabase_url
-   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-   VITE_AUTH0_DOMAIN=your_auth0_domain
-   VITE_AUTH0_CLIENT_ID=your_auth0_client_id
-   VITE_AUTH0_AUDIENCE=your_auth0_api_audience
-   VITE_PRICE_HINT_API=http://localhost:8000
-   ```
+Real keys belong only in ignored `.env` files or server-side hosting settings. Never prefix an OpenAI key with `VITE_`. Reference templates: `phone.env.example` and `backend/scanner.env.example`.
 
-3. **Run the frontend**
-   ```bash
-   npm run dev
-   ```
+## Checks
 
-4. **Run the backend** (optional, for AI price hints)
-   ```bash
-   cd backend
-   pip install -r requirements.txt
-   cp .env.example .env   # Add BROWSER_USE_API_KEY
-   uvicorn main:app --reload
-   ```
+```sh
+npm run lint
+npm test
+npm run build
+npm run test:e2e
+npm run test:pwa
+.venv/bin/python -m unittest backend.test_scanner
+```
 
-### Supabase Setup
-
-Create the following tables in your Supabase project:
-
-- **profiles** -- id, name, avatar_url, college, bio, meetup_spots, created_at
-- **listings** -- id, seller_id, title, price, category, condition, description, image_url, status, created_at
-- **messages** -- id, listing_id, sender_id, receiver_id, content, created_at
-- **ratings** -- id, rater_id, rated_id, score, comment, created_at
-
-Create storage buckets: `avatars` (public read) and `listing-images` (public read).
-
-## Team
-
-| Member | Role |
-|--------|------|
-| **MokeyCodes** | Database -- Supabase schema, tables, RLS policies, storage |
-| **alexgilbreath** | Frontend + UI -- React components, pages, visual layout |
-| **masonbrito** | Backend + Integration -- Auth0, hooks, services, API wiring |
-
-## License
-
-This project was built for a hackathon.
+The original hackathon website is retained under `src/pages`, `src/hooks`, and `src/services`; select it with `VITE_APP_EXPERIENCE=legacy`. Its Browser Use backend is not part of the phone app's OpenAI scanner.

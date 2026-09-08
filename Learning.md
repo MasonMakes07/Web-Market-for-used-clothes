@@ -31,3 +31,18 @@ Supabase's `.or()` method takes a raw filter string. If user-controlled IDs are 
 
 ## Lesson 10: Use separate fetchIdRefs for independent fetch operations
 If two independent async operations (e.g., fetchConversations and fetchMessages) share one fetchIdRef, one operation can cancel the other's response. Each independent fetch needs its own counter ref.
+
+## Lesson 11: Test phone previews on insecure LAN origins
+`crypto.randomUUID()` is restricted to secure contexts and may be absent when an iPhone opens the Mac's HTTP LAN address. Use a `crypto.getRandomValues()` fallback for local identifiers, and test that path explicitly. Camera upload may work on HTTP, but production installation, service workers, and OAuth require an HTTPS deployment.
+
+## Lesson 12: Keep local preview persistence ordered and explicit
+Serialize IndexedDB writes so rapid edits cannot finish out of order. Display storage failures and never replace existing data when the initial read fails. A local preview must not imply messages, reports, or listings were delivered to other students.
+
+## Lesson 13: Review the phone viewport after visual changes
+A layout can pass overflow checks while a tall hero pushes the inventory below the first screen. Keep the mobile introduction compact, inspect screenshots, and search for split or lowercase brand text when renaming an app.
+
+## Lesson 14: Separate university sign-in from student authorization
+A named enterprise redirect is only a login integration. Do not infer active enrollment from a UCSD email, a successful Duo flow, or an editable local profile. Keep campus signup visibly unavailable until the identity connection exists, and require server-side student approval for shared data.
+
+## Lesson 15: Enforce requested price research and deduplicate billing
+Allowing a web-search tool does not guarantee it runs. Require the tool when the user opts into price research, verify real search-call output, and cache identical per-account scans behind authentication. Never deploy SQLite quotas on an ephemeral filesystem.
