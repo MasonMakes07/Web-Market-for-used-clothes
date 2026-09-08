@@ -46,3 +46,6 @@ A named enterprise redirect is only a login integration. Do not infer active enr
 
 ## Lesson 15: Enforce requested price research and deduplicate billing
 Allowing a web-search tool does not guarantee it runs. Require the tool when the user opts into price research, verify real search-call output, and cache identical per-account scans behind authentication. Never deploy SQLite quotas on an ephemeral filesystem.
+
+## Lesson 16: Distinguish initial null from "no results" null
+When a hook starts as null and no-results also sets null, use a separate hasSearched flag so no-results messages do not appear before searching.

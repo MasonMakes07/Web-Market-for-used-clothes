@@ -315,6 +315,7 @@ async def request_draft(payload):
         "Describe visible details plainly, and ask the seller to confirm condition. "
         "When web search is available, search once for similar USED items and return at most 4 comparable USD asking prices explicitly shown in the search evidence. "
         "Return the exact source URLs and item titles. Exclude auctions, bundles, retail new items, non-USD prices, and unrelated items. "
+        "Brand and item type must match: if the photo brand is unknown, exclude known-brand comparables and use only explicitly unbranded or unspecified-brand items. Never compare a generic hoodie to premium branded products. "
         "If no search was performed or no suitable evidence exists, return an empty comparables list. Never use remembered prices or claim sold prices."
     )
     request = {

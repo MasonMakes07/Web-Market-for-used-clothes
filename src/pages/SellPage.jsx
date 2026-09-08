@@ -9,9 +9,11 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth.jsx";
+import { useProfile } from "../hooks/useProfile.jsx";
 import { useListings } from "../hooks/useListings.jsx";
 import { usePriceHint } from "../hooks/usePriceHint.js";
 import { uploadListingImage } from "../services/storage.js";
+import { sanitizeText } from "../lib/sanitize.js";
 import "./SellPage.css";
 
 const GENDER_OPTS = ["Men's", "Women's"];
@@ -21,6 +23,7 @@ const MAX_TAGS = 20;
 
 export default function SellPage() {
   const { user } = useAuth();
+  const { profile } = useProfile();
   const { createListing } = useListings();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
@@ -47,7 +50,8 @@ export default function SellPage() {
   const [error, setError] = useState("");
 
   // Price Compare
-  const { priceHint, isLoading: hintLoading, fetchPriceHint } = usePriceHint();
+  const { priceHint, isLoading: hintLoading, error: hintError, fetchPriceHint } = usePriceHint();
+  const [hasSearched, setHasSearched] = useState(false);
 
   // ── Photo handlers ──────────────────────────────────────────────────────────
 
@@ -120,8 +124,9 @@ export default function SellPage() {
       setError("Enter a title first so we can find comparable listings.");
       return;
     }
+    setHasSearched(true);
     const category = gender && subCategory ? `${gender} - ${subCategory}` : gender || "";
-    fetchPriceHint(title, category, imageUrl || null);
+    fetchPriceHint(title, category);
   }
 
   function applyPrice(value) {
@@ -160,14 +165,24 @@ export default function SellPage() {
       return;
     }
 
+    // Sanitize text inputs before submission
+    let cleanTitle, cleanDesc;
+    try {
+      cleanTitle = sanitizeText(title.trim());
+      cleanDesc = description.trim() ? sanitizeText(description.trim()) : "";
+    } catch (err) {
+      setError(err.message);
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       await createListing(user.sub, {
-        title: title.trim(),
+        title: cleanTitle,
         category: `${gender} - ${subCategory}`,
         condition,
         price: parsedPrice,
-        description: description.trim(),
+        description: cleanDesc,
         image_url: imageUrl,
         tags,
       });
@@ -179,8 +194,6 @@ export default function SellPage() {
     }
   }
 
-  const fullCategory = gender && subCategory ? `${gender} - ${subCategory}` : "";
-
   return (
     <div className="sell">
 
@@ -188,7 +201,7 @@ export default function SellPage() {
       <div className="sell-header">
         <div className="sell-header-user">
           <img
-            src={user?.picture || "/default-avatar.png"}
+            src={profile?.avatar_url || user?.picture || "/default-avatar.png"}
             alt={user?.name || "You"}
             className="sell-header-avatar"
           />
@@ -255,7 +268,7 @@ export default function SellPage() {
             placeholder="Title"
             value={title}
             maxLength={80}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) => { setTitle(e.target.value); setHasSearched(false); }}
             aria-label="Title"
           />
 
@@ -378,8 +391,8 @@ export default function SellPage() {
             className="sell-price-compare-btn"
             type="button"
             onClick={handlePriceCompare}
-            disabled={hintLoading || !imageUrl}
-            title={!imageUrl ? "Upload a photo first" : ""}
+            disabled={hintLoading || !title.trim()}
+            title={!title.trim() ? "Enter a title first" : ""}
           >
             {hintLoading ? "Searching eBay..." : "Price Compare"}
           </button>
@@ -419,7 +432,11 @@ export default function SellPage() {
             </div>
           )}
 
-          {priceHint === null && !hintLoading && fullCategory && (
+          {hintError && !hintLoading && (
+            <p className="sell-no-hint">Price compare failed: {hintError}</p>
+          )}
+
+          {priceHint === null && !hintLoading && !hintError && hasSearched && (
             <p className="sell-no-hint">No comparable listings found. Set your own price.</p>
           )}
         </div>

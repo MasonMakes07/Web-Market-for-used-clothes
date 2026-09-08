@@ -1,30 +1,23 @@
 /**
  * usePriceHint.js
  * React hook for fetching AI-powered price suggestions.
- * Debounces the request so it only fires after the user stops
- * typing for 800ms. Uses stale-response protection (fetchIdRef)
- * per Learning.md Lesson 8.
+ * Fires immediately on call (button-triggered, no debounce).
+ * Uses stale-response protection (fetchIdRef) per Learning.md Lesson 8.
  */
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef } from "react";
 import { getPriceHint } from "../services/priceHint.js";
 
-// Fetches a price hint with debounce and stale-response protection
+// Fetches a price hint with stale-response protection
 export function usePriceHint() {
   const [priceHint, setPriceHint] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const fetchIdRef = useRef(0);
-  const debounceRef = useRef(null);
 
-  // Fetches price hint for the given title, category, and optional image URL (debounced)
-  const fetchPriceHint = useCallback((title, category, imageUrl = null) => {
-    // Clear any pending debounce
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
-
-    // Reset if title is empty
+  // Fetches price hint for the given title and category — fires immediately
+  const fetchPriceHint = useCallback((title, category) => {
+    // Reset if title is too short
     if (!title || title.trim().length < 3) {
       setPriceHint(null);
       setError(null);
@@ -34,47 +27,30 @@ export function usePriceHint() {
 
     setError(null);
 
-    // Debounce: wait 800ms after the user stops typing
-    debounceRef.current = setTimeout(async () => {
-      const id = ++fetchIdRef.current;
-      setIsLoading(true);
+    const id = ++fetchIdRef.current;
+    setIsLoading(true);
 
-      try {
-        const data = await getPriceHint(title, category, imageUrl);
-        if (id === fetchIdRef.current) {
-          setPriceHint(data);
-        }
-      } catch (err) {
+    getPriceHint(title, category)
+      .then((data) => {
+        if (id === fetchIdRef.current) setPriceHint(data);
+      })
+      .catch((err) => {
         if (id === fetchIdRef.current) {
           setError(err.message);
           setPriceHint(null);
         }
-      } finally {
-        if (id === fetchIdRef.current) {
-          setIsLoading(false);
-        }
-      }
-    }, 800);
+      })
+      .finally(() => {
+        if (id === fetchIdRef.current) setIsLoading(false);
+      });
   }, []);
 
   // Clears the price hint state
   const clearPriceHint = useCallback(() => {
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
     fetchIdRef.current++;
     setPriceHint(null);
     setError(null);
     setIsLoading(false);
-  }, []);
-
-  // Cleanup debounce timer on unmount
-  useEffect(() => {
-    return () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
-    };
   }, []);
 
   return { priceHint, isLoading, error, fetchPriceHint, clearPriceHint };

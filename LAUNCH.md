@@ -28,3 +28,7 @@ Official references: [model rates](https://developers.openai.com/api/docs/models
 - Live item-pricing quality checks and account-isolation tests on the deployment.
 
 The device preview must not be advertised as a working student-only multi-user marketplace until those connections pass real tests.
+
+## Live smoke test, September 8, 2026
+
+A public sample hoodie pricing run used 9,404 input tokens, 322 output tokens, and one web-search call: approximately $0.0185 at the linked published rates, before any billing adjustments. It returned four asking-price URLs, but mixed branded comparables with an unknown-brand item; those results are not a reliable appraisal. The prompt was tightened to exclude known-brand comparisons when the uploaded brand is unknown. The revised matching quality still needs testing on the user-provided photo.

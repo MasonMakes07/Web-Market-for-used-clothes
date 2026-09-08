@@ -28,7 +28,7 @@ def claim_scan(subject, payload):
     digest = hashlib.sha256(
         json.dumps(
             {
-                "version": 2,
+                "version": 3,
                 "model": os.getenv("OPENAI_SCAN_MODEL", "gpt-5.4-mini"),
                 "payload": payload.model_dump(),
             },

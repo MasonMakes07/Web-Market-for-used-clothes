@@ -1,11 +1,9 @@
 /**
- * SignUpPage.jsx
- * Shown after Auth0 OAuth login when the user has no profile yet.
- * Collects profile photo, bio, college (via logo cards), and ideal meetup spots.
- * Submits to createProfile() then redirects to the home page.
- *
- * TODO: Wire createProfile() from useProfile hook (Issue #15) when Mason's implementation is ready.
- * TODO: Wire uploadAvatar() from storage service (Issue #13) when Mason's implementation is ready.
+ * EditProfilePage.jsx
+ * Profile editing form for existing users.
+ * Pre-fills with current profile data (bio, college, meetup spots, avatar).
+ * Uses updateProfile() from useProfile hook to save changes.
+ * Reuses SignUpPage.css for consistent styling.
  */
 
 import { useState, useRef, useEffect } from "react";
@@ -15,30 +13,51 @@ import { useProfile } from "../hooks/useProfile.jsx";
 import { uploadAvatar } from "../services/storage.js";
 import { sanitizeText } from "../lib/sanitize.js";
 import { COLLEGES } from "../lib/colleges.js";
-import { MEETUP_SPOTS } from "../lib/meetupSpots.js";
 import "./SignUpPage.css";
 
-export default function SignUpPage() {
+const MEETUP_SPOTS = [
+  "Geisel Library",
+  "Price Center",
+  "Sun God Lawn",
+  "Panda Express",
+  "PC Loop",
+];
+
+export default function EditProfilePage() {
   const { user } = useAuth();
-  const { createProfile } = useProfile();
+  const { profile, updateProfile } = useProfile();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
-  // Pre-fill with Auth0 profile picture (e.g. Google photo) if available
-  const [avatarPreview, setAvatarPreview] = useState(user?.picture || null);
+  // Pre-fill with current profile data
+  const [avatarPreview, setAvatarPreview] = useState(profile?.avatar_url || user?.picture || null);
   const [avatarFile, setAvatarFile] = useState(null);
-  const [bio, setBio] = useState("");
-  const [college, setCollege] = useState("");
-  const [meetupSpots, setMeetupSpots] = useState([]);
+  const [bio, setBio] = useState(profile?.bio || "");
+  const [college, setCollege] = useState(profile?.college || "");
+  const [meetupSpots, setMeetupSpots] = useState(profile?.meetup_spots || []);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
+  // Update form if profile loads after mount
+  useEffect(() => {
+    if (profile) {
+      setBio(profile.bio || "");
+      setCollege(profile.college || "");
+      setMeetupSpots(profile.meetup_spots || []);
+      if (!avatarFile) setAvatarPreview(profile.avatar_url || user?.picture || null);
+    }
+  }, [profile, user?.picture, avatarFile]);
+
   // Revoke blob URL on unmount to prevent memory leaks
+  const avatarPreviewRef = useRef(avatarPreview);
+  avatarPreviewRef.current = avatarPreview;
   useEffect(() => {
     return () => {
-      if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+      if (avatarPreviewRef.current && avatarPreviewRef.current.startsWith("blob:")) {
+        URL.revokeObjectURL(avatarPreviewRef.current);
+      }
     };
-  }, [avatarPreview]);
+  }, []);
 
   // Preview the selected avatar image before upload
   function handleAvatarChange(e) {
@@ -50,72 +69,75 @@ export default function SignUpPage() {
       return;
     }
 
-    const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+    const MAX_SIZE = 5 * 1024 * 1024;
     if (file.size > MAX_SIZE) {
       setError("Image must be under 5 MB.");
       return;
     }
 
-    // Revoke the old preview URL before creating a new one
-    if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+    if (avatarPreview && avatarPreview.startsWith("blob:")) {
+      URL.revokeObjectURL(avatarPreview);
+    }
 
     setAvatarFile(file);
     setAvatarPreview(URL.createObjectURL(file));
     setError("");
   }
 
-  // Toggle a meetup spot on or off (stores the name string)
-  function toggleMeetupSpot(spotName) {
+  // Toggle a meetup spot on or off
+  function toggleMeetupSpot(spot) {
     setMeetupSpots((prev) =>
-      prev.includes(spotName) ? prev.filter((s) => s !== spotName) : [...prev, spotName]
+      prev.includes(spot) ? prev.filter((s) => s !== spot) : [...prev, spot]
     );
   }
 
+  // Saves profile changes
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
 
-    if (!college) {
-      setError("Please select your college.");
+    if (!user?.sub) {
+      setError("You must be logged in to edit your profile.");
       return;
     }
 
-    // Sanitize bio using the project's sanitizeText (catches code patterns, strips HTML)
-    const sanitizedBio = bio.trim() ? sanitizeText(bio.trim()) : "";
+    if (!college || !COLLEGES.some((c) => c.name === college)) {
+      setError("Please select a valid college.");
+      return;
+    }
+
+    let sanitizedBio = "";
+    try {
+      sanitizedBio = bio.trim() ? sanitizeText(bio.trim()) : "";
+    } catch (err) {
+      setError(err.message);
+      return;
+    }
+
+    const validSpots = meetupSpots.filter((s) => MEETUP_SPOTS.includes(s));
 
     setIsSubmitting(true);
     try {
-      // Try to upload a custom photo if one was selected, otherwise use Auth0 picture
-      let avatarUrl = user.picture || "";
+      // Upload new avatar if one was selected
+      let avatarUrl = profile?.avatar_url || user.picture || "";
       if (avatarFile) {
         try {
           avatarUrl = await uploadAvatar(user.sub, avatarFile);
         } catch {
-          // Upload failed — fall back to Auth0 picture silently
-          avatarUrl = user.picture || "";
+          avatarUrl = profile?.avatar_url || user.picture || "";
         }
       }
 
-      // Create the profile row
-      await createProfile({
-        name: user.name,
+      await updateProfile({
         avatar_url: avatarUrl,
         bio: sanitizedBio,
         college,
-        meetup_spots: meetupSpots,
+        meetup_spots: validSpots,
       });
 
-      // Mark profile as created so useAuth skips the DB check on future logins
-      localStorage.setItem(`triton_thrift_profile_${user.sub}`, "1");
-      navigate("/");
-    } catch (err) {
-      // If profile already exists (e.g. user navigated here directly), cache and go home
-      if (err?.message?.includes("duplicate") || err?.code === "23505") {
-        localStorage.setItem(`triton_thrift_profile_${user.sub}`, "1");
-        navigate("/");
-        return;
-      }
-      setError(err?.message || "Failed to create profile. Please try again.");
+      navigate(`/profile/${encodeURIComponent(user.sub)}`);
+    } catch {
+      setError("Failed to update profile. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -124,14 +146,14 @@ export default function SignUpPage() {
   return (
     <div className="signup">
       <div className="signup-card">
-        <h1 className="signup-title">Complete Your Profile</h1>
-        <p className="signup-subtitle">Welcome, {user?.name || user?.email}! Tell us a bit about yourself.</p>
+        <h1 className="signup-title">Edit Profile</h1>
+        <p className="signup-subtitle">Update your profile information.</p>
 
         <form className="signup-form" onSubmit={handleSubmit} noValidate>
 
           {/* Profile photo */}
           <section className="signup-section">
-            <label className="signup-label">Profile Photo <span className="signup-optional">(optional — using your Google photo by default)</span></label>
+            <label className="signup-label">Profile Photo</label>
             <div
               className="signup-avatar-wrap"
               onClick={() => fileInputRef.current?.click()}
@@ -198,14 +220,13 @@ export default function SignUpPage() {
             <div className="signup-spots">
               {MEETUP_SPOTS.map((spot) => (
                 <button
-                  key={spot.name}
+                  key={spot}
                   type="button"
-                  className={`signup-spot-card ${meetupSpots.includes(spot.name) ? "signup-spot-card--selected" : ""}`}
-                  onClick={() => toggleMeetupSpot(spot.name)}
-                  aria-pressed={meetupSpots.includes(spot.name)}
+                  className={`signup-spot-btn ${meetupSpots.includes(spot) ? "signup-spot-btn--selected" : ""}`}
+                  onClick={() => toggleMeetupSpot(spot)}
+                  aria-pressed={meetupSpots.includes(spot)}
                 >
-                  <img src={spot.image} alt={spot.name} className="signup-spot-img" />
-                  <span className="signup-spot-name">{spot.name}</span>
+                  {spot}
                 </button>
               ))}
             </div>
@@ -218,7 +239,7 @@ export default function SignUpPage() {
             className="signup-submit"
             disabled={isSubmitting}
           >
-            {isSubmitting ? "Saving..." : "Get Started"}
+            {isSubmitting ? "Saving..." : "Save Changes"}
           </button>
 
         </form>

@@ -45,3 +45,5 @@ npm run test:pwa
 ```
 
 The original hackathon website is retained under `src/pages`, `src/hooks`, and `src/services`; select it with `VITE_APP_EXPERIENCE=legacy`. Its Browser Use backend is not part of the phone app's OpenAI scanner.
+
+Original hackathon contributors: MokeyCodes (database), alexgilbreath (frontend), masonbrito (backend/integration), and Claude (AI assistance).

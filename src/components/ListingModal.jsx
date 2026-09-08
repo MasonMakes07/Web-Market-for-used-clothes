@@ -65,6 +65,9 @@ export default function ListingModal({ listing, onClose }) {
         state: {
           listingId: listing.id,
           sellerId: listing.seller_id || listing.seller?.id,
+          sellerName: listing.seller?.name || null,
+          sellerAvatar: listing.seller?.avatar_url || null,
+          listingTitle: listing.title || null,
         },
       });
     }

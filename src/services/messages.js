@@ -90,7 +90,7 @@ export async function getConversations(userId) {
     .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
     .order("created_at", { ascending: false });
 
-  if (error) throw new Error("Failed to fetch conversations.");
+  if (error) throw new Error(`Failed to fetch conversations: ${error.message} (code: ${error.code})`);
   if (!data || data.length === 0) return [];
 
   // Group by thread key (listing_id + other_user_id) and keep the latest message
@@ -139,21 +139,4 @@ export async function markThreadAsRead(userId, listingId, otherUserId) {
     .eq("read", false);
 
   if (error) throw new Error("Failed to mark messages as read.");
-}
-
-// Returns the total unread message count for a user
-export async function getUnreadCount(userId) {
-  if (!supabase) throw new Error("Supabase client not initialized.");
-  if (!userId) throw new Error("User ID is required.");
-
-  validateId(userId, "user ID");
-
-  const { count, error } = await supabase
-    .from("messages")
-    .select("id", { count: "exact", head: true })
-    .eq("receiver_id", userId)
-    .eq("read", false);
-
-  if (error) throw new Error("Failed to fetch unread count.");
-  return count || 0;
 }
