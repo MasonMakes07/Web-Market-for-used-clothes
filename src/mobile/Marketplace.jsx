@@ -304,7 +304,9 @@ function PhoneApp() {
   if (!data)
     return (
       <div className="tt-boot">
-        <div className="tt-brand-symbol">t.</div>
+        <div className="tt-brand-symbol">
+          <Icon name="logo" size={34} />
+        </div>
         <h1>Tritons Thrifts</h1>
         <p>{loadError ? storageError : "Getting your campus finds ready…"}</p>
         {loadError && (
@@ -322,8 +324,8 @@ function PhoneApp() {
     (item) => item.sellerId === "local-owner",
   );
   const filterCount =
-    [filters.college, filters.condition, filters.price].filter(Boolean)
-      .length + filters.genders.length;
+    [filters.college, filters.condition, filters.price].filter(Boolean).length +
+    filters.genders.length;
 
   // Filters combine rather than replacing one another; numeric sorts do not mutate saved data.
   function visibleListings(savedOnly) {
@@ -497,7 +499,9 @@ function PhoneApp() {
       </a>
       <header className="tt-header">
         <NavLink to="/" className="tt-brand" aria-label="Tritons Thrifts home">
-          <span className="tt-brand-symbol">t.</span>
+          <span className="tt-brand-symbol">
+            <Icon name="logo" size={30} />
+          </span>
           <span>
             Tritons <span className="tt-brand-light">Thrifts</span>
             <small>THE UCSD MARKETPLACE</small>
@@ -892,7 +896,7 @@ function PhoneApp() {
                           <Icon name="shield" /> Privacy & preview details
                           <Icon name="arrow" size={17} />
                         </button>
-                        {session.configured && (
+                        {session.configured && !session.ownerPreview && (
                           <button
                             onClick={() =>
                               session.user ? session.logout() : session.login()
@@ -1252,7 +1256,9 @@ function PhoneApp() {
           onClose={() => setInstall(false)}
         >
           <div className="tt-install">
-            <span className="tt-brand-symbol">t.</span>
+            <span className="tt-brand-symbol">
+              <Icon name="logo" size={30} />
+            </span>
             <p>Add Tritons Thrifts to your Home Screen for one-tap access.</p>
             <ol>
               <li>

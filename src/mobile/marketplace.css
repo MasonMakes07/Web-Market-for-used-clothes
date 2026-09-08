@@ -3609,3 +3609,13 @@ body {
 .tt-sell .tt-price-note {
   background: var(--tt-shell-deep);
 }
+
+/* Brand tile now holds the hanger-and-surf mark instead of a text glyph. */
+.tt-brand-symbol {
+  font-size: 0;
+  letter-spacing: 0;
+  color: var(--tt-gold);
+}
+.tt-brand-symbol svg {
+  stroke-width: 1.9;
+}

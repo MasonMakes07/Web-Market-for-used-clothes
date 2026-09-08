@@ -1,5 +1,5 @@
 /* Only cache a public offline page and icons. Never cache private API calls or OAuth redirects. */
-const CACHE = "triton-thrift-offline-v2";
+const CACHE = "triton-thrift-offline-v3";
 const FILES = ["/offline.html", "/app-icon-192.png", "/app-icon-512.png"];
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(FILES)));
