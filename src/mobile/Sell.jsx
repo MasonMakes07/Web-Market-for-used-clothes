@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Icon from "./icons.jsx";
-import { CATEGORIES, CONDITIONS } from "./data.js";
+import { CATEGORIES, CONDITIONS, GENDERS } from "./data.js";
 import { preparePhoto } from "./storage.js";
 import { scanPhotos, useSession } from "./Session.jsx";
 import { ItemImage } from "./components.jsx";
@@ -510,6 +510,14 @@ export default function Sell({ draft, updateDraft, onPublish, notify }) {
               />
             </label>
           </div>
+          <label>
+            Fits
+            <select {...field("gender")}>
+              {GENDERS.map((value) => (
+                <option key={value}>{value}</option>
+              ))}
+            </select>
+          </label>
           <label>
             Description
             <textarea

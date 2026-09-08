@@ -527,6 +527,111 @@ input[type="checkbox"] {
   font-size: 9px;
   white-space: nowrap;
 }
+.tt-jobs-cta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  background: var(--tt-navy);
+  color: #fff;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+.tt-jobs-cta > span:first-child {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #ffffff26;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.tt-jobs-cta-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+}
+.tt-jobs-cta-copy strong {
+  font-size: 13px;
+}
+.tt-jobs-cta-copy span {
+  font-size: 10px;
+  color: #ffffffb3;
+}
+.tt-jobs-note {
+  display: flex;
+  align-items: start;
+  gap: 12px;
+  margin: 0 0 30px;
+  background: #f6f7f3;
+  border-radius: 8px;
+  padding: 15px;
+}
+.tt-jobs-note svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: #7b8d73;
+}
+.tt-jobs-note p {
+  font-size: 10px;
+  line-height: 1.8;
+  color: #8a9288;
+}
+.tt-jobs-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.tt-job-card {
+  border: 1px solid var(--tt-border);
+  border-radius: 13px;
+  padding: 20px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+}
+.tt-sample-badge {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  border-radius: 4px;
+  padding: 5px 8px;
+  font-size: 10px;
+  font-weight: 650;
+  background: #eef1e9;
+  color: #456253;
+  margin-bottom: 10px;
+}
+.tt-job-card h3 {
+  font-size: 15px;
+  font-weight: 600;
+}
+.tt-job-employer {
+  font-size: 11px;
+  color: #7b8788;
+  margin-top: 3px;
+}
+.tt-job-card .tt-tags {
+  margin: 12px 0;
+}
+.tt-job-location {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  color: #87928c;
+}
+.tt-job-blurb {
+  font-size: 11px;
+  line-height: 1.7;
+  color: #6d7c81;
+  margin: 10px 0 16px;
+}
+.tt-job-card .tt-button {
+  margin-top: auto;
+}
 .tt-footer {
   display: flex;
   gap: 20px;
@@ -958,6 +1063,34 @@ input[type="checkbox"] {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
+}
+.tt-filter-checks {
+  border: 0;
+  margin-top: 19px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.tt-filter-checks legend {
+  font-size: 11px;
+  font-weight: 550;
+  margin-bottom: 2px;
+  padding: 0;
+}
+.tt-checkbox {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 9px !important;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  margin-top: 0 !important;
+}
+.tt-checkbox input {
+  min-height: 16px;
+  width: 16px;
+  flex-shrink: 0;
 }
 .tt-price-input {
   display: flex;
@@ -1737,6 +1870,9 @@ input[type="checkbox"] {
   .tt-item-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 23px 13px;
+  }
+  .tt-jobs-grid {
+    grid-template-columns: 1fr;
   }
   .tt-item-photo {
     border-radius: 10px;

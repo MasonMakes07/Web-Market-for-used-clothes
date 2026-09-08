@@ -25,11 +25,13 @@ export const SPOTS = [
   "Sixth College",
 ];
 export const CONDITIONS = ["Like new", "Good", "Fair", "New with tags"];
+export const GENDERS = ["Unisex", "Men's", "Women's"];
 export const EMPTY_DRAFT = {
   title: "",
   price: "",
   category: "Clothing",
   size: "",
+  gender: "Unisex",
   brand: "",
   condition: "Good",
   description: "",
@@ -52,6 +54,7 @@ const sample = [
     24,
     "Clothing",
     "M",
+    "Unisex",
     "Sixth",
     "Maya",
     "1556821840-3a63f95609a7",
@@ -64,6 +67,7 @@ const sample = [
     32,
     "Clothing",
     "28",
+    "Women's",
     "Muir",
     "Jamie",
     "1542272604-787c3835535d",
@@ -76,6 +80,7 @@ const sample = [
     45,
     "Shoes",
     "US 8",
+    "Men's",
     "Warren",
     "Jordan",
     "1542291026-7eec264c27ff",
@@ -88,6 +93,7 @@ const sample = [
     12,
     "Clothing",
     "L",
+    "Men's",
     "Seventh",
     "Sam",
     "1521572163474-6864f9cf17ab",
@@ -100,6 +106,7 @@ const sample = [
     55,
     "Electronics",
     "",
+    "Unisex",
     "Marshall",
     "Taylor",
     "1505740420928-5e560c06d30e",
@@ -112,6 +119,7 @@ const sample = [
     28,
     "Accessories",
     "",
+    "Unisex",
     "Revelle",
     "Alex",
     "1553062407-98eeb64c6a62",
@@ -129,6 +137,7 @@ export function initialState() {
       price,
       category,
       size,
+      gender,
       college,
       seller,
       image,
@@ -140,6 +149,7 @@ export function initialState() {
       price,
       category,
       size,
+      gender,
       college,
       seller,
       sellerId: `sample-${id}`,
@@ -154,7 +164,7 @@ export function initialState() {
     }),
   );
   return {
-    version: 1,
+    version: 2,
     listings,
     saved: ["jeans"],
     draft: EMPTY_DRAFT,
@@ -183,5 +193,17 @@ export function initialState() {
     ],
     blocked: [],
     reports: [],
+  };
+}
+
+// Backfills fields added after version 1 so returning devices don't lose listings
+// to filters that key off a field their stored data predates.
+export function migrate(saved) {
+  if (saved.version === 2) return saved;
+  return {
+    ...saved,
+    version: 2,
+    listings: saved.listings.map((item) => ({ gender: "Unisex", ...item })),
+    draft: { ...EMPTY_DRAFT, ...saved.draft },
   };
 }

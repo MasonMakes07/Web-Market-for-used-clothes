@@ -101,6 +101,12 @@ const paths = {
       <path d="M4 22V3c6-4 10 4 16 0v11c-6 4-10-4-16 0" />
     </>
   ),
+  briefcase: (
+    <>
+      <rect x="2" y="7" width="20" height="14" rx="2.5" />
+      <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M2 13h20" />
+    </>
+  ),
 };
 
 // Shared line icons keep the phone and desktop controls visually consistent.

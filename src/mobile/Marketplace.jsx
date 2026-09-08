@@ -10,6 +10,7 @@ import {
 import Icon from "./icons.jsx";
 import {
   initialState,
+  migrate,
   COLLEGES,
   CATEGORIES,
   CONDITIONS,
@@ -23,15 +24,32 @@ import SessionProvider, { useSession } from "./Session.jsx";
 import Sell from "./Sell.jsx";
 import CampusAccount from "./CampusAccount.jsx";
 import Inbox from "./Inbox.jsx";
+import Jobs from "./Jobs.jsx";
 import "./marketplace.css";
 
 const tabs = [
   ["/", "discover", "Discover"],
   ["/saved", "heart", "Saved"],
   ["/sell", "plus", "Sell"],
+  ["/jobs", "briefcase", "Jobs"],
   ["/inbox", "chat", "Inbox"],
   ["/profile", "user", "Profile"],
 ];
+
+const GENDER_FILTERS = ["Men's", "Women's"];
+// Gender isn't a meaningful attribute outside apparel, so a "Fits" filter
+// narrows to these categories rather than pulling in unrelated Unisex items
+// like electronics or books.
+const GENDERED_CATEGORIES = ["Clothing", "Shoes"];
+
+const EMPTY_FILTERS = Object.freeze({
+  college: "",
+  condition: "",
+  price: "",
+  sort: "newest",
+  sizes: Object.freeze([]),
+  genders: Object.freeze([]),
+});
 
 // Root keeps the original website implementation available through the legacy entry switch.
 export default function Marketplace() {
@@ -55,12 +73,7 @@ function PhoneApp() {
   const [saving, setSaving] = useState(false);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All finds");
-  const [filters, setFilters] = useState({
-    college: "",
-    condition: "",
-    price: "",
-    sort: "newest",
-  });
+  const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [filterOpen, setFilterOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
   const [install, setInstall] = useState(false);
@@ -85,12 +98,12 @@ function PhoneApp() {
         if (!active) return;
         if (
           saved &&
-          (saved.version !== 1 ||
+          (![1, 2].includes(saved.version) ||
             !Array.isArray(saved.listings) ||
             !Array.isArray(saved.threads))
         )
           throw new Error("Stored data needs a compatible version of the app.");
-        setData(saved || initialState());
+        setData(saved ? migrate(saved) : initialState());
       })
       .catch(() => {
         if (active) {
@@ -211,7 +224,7 @@ function PhoneApp() {
     }));
     setQuery("");
     setCategory("All finds");
-    setFilters({ college: "", condition: "", price: "", sort: "newest" });
+    setFilters(EMPTY_FILTERS);
     navigate("/profile");
     setToast(
       existing
@@ -258,14 +271,22 @@ function PhoneApp() {
       </div>
     );
   const selected = data.listings.find((item) => item.id === selectedId);
-  const filterCount = [
-    filters.college,
-    filters.condition,
-    filters.price,
-  ].filter(Boolean).length;
   const localListings = data.listings.filter(
     (item) => item.sellerId === "local-owner",
   );
+  const availableSizes = Array.from(
+    new Set(data.listings.map((item) => item.size).filter(Boolean)),
+  ).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+  // Sizes stop appearing here once nothing is listed in them (e.g. after a delete
+  // or reset); drop them from the active filter so it can't stay stuck invisibly on.
+  const activeSizes = filters.sizes.filter((value) =>
+    availableSizes.includes(value),
+  );
+  const filterCount =
+    [filters.college, filters.condition, filters.price].filter(Boolean)
+      .length +
+    activeSizes.length +
+    filters.genders.length;
 
   // Filters combine rather than replacing one another; numeric sorts do not mutate saved data.
   function visibleListings(savedOnly) {
@@ -278,6 +299,11 @@ function PhoneApp() {
         (!filters.college || item.college === filters.college) &&
         (!filters.condition || item.condition === filters.condition) &&
         (filters.price === "" || item.price <= Number(filters.price)) &&
+        (!activeSizes.length || activeSizes.includes(item.size)) &&
+        (!filters.genders.length ||
+          (GENDERED_CATEGORIES.includes(item.category) &&
+            (item.gender === "Unisex" ||
+              filters.genders.includes(item.gender)))) &&
         `${item.title} ${item.category} ${item.brand || ""} ${item.size}`
           .toLowerCase()
           .includes(query.toLowerCase().trim()),
@@ -401,12 +427,7 @@ function PhoneApp() {
             onAction={() => {
               setQuery("");
               setCategory("All finds");
-              setFilters({
-                college: "",
-                condition: "",
-                price: "",
-                sort: "newest",
-              });
+              setFilters(EMPTY_FILTERS);
               navigate("/");
             }}
           >
@@ -566,6 +587,7 @@ function PhoneApp() {
                 />
               }
             />
+            <Route path="/jobs" element={<Jobs />} />
             <Route
               path="/inbox"
               element={
@@ -848,6 +870,9 @@ function PhoneApp() {
               <div className="tt-tags">
                 <span>{selected.condition}</span>
                 {selected.size && <span>Size {selected.size}</span>}
+                {selected.gender && selected.gender !== "Unisex" && (
+                  <span>{selected.gender}</span>
+                )}
                 <span>{selected.status}</span>
               </div>
               <p className="tt-detail-description">
@@ -892,6 +917,7 @@ function PhoneApp() {
                           price: String(selected.price),
                           category: selected.category,
                           size: selected.size || "",
+                          gender: selected.gender || "Unisex",
                           brand: selected.brand || "",
                           condition: selected.condition,
                           description: selected.description,
@@ -994,6 +1020,48 @@ function PhoneApp() {
                 ))}
               </select>
             </label>
+            <fieldset className="tt-filter-checks">
+              <legend>Fits</legend>
+              {GENDER_FILTERS.map((value) => (
+                <label key={value} className="tt-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={filters.genders.includes(value)}
+                    onChange={(event) =>
+                      setFilters((current) => ({
+                        ...current,
+                        genders: event.target.checked
+                          ? [...current.genders, value]
+                          : current.genders.filter((v) => v !== value),
+                      }))
+                    }
+                  />
+                  {value}
+                </label>
+              ))}
+            </fieldset>
+            {availableSizes.length > 0 && (
+              <fieldset className="tt-filter-checks">
+                <legend>Size</legend>
+                {availableSizes.map((value) => (
+                  <label key={value} className="tt-checkbox">
+                    <input
+                      type="checkbox"
+                      checked={filters.sizes.includes(value)}
+                      onChange={(event) =>
+                        setFilters((current) => ({
+                          ...current,
+                          sizes: event.target.checked
+                            ? [...current.sizes, value]
+                            : current.sizes.filter((v) => v !== value),
+                        }))
+                      }
+                    />
+                    {value}
+                  </label>
+                ))}
+              </fieldset>
+            )}
             <label>
               Maximum price
               <input
@@ -1034,14 +1102,7 @@ function PhoneApp() {
             </button>
             <button
               className="tt-text-button"
-              onClick={() =>
-                setFilters({
-                  college: "",
-                  condition: "",
-                  price: "",
-                  sort: "newest",
-                })
-              }
+              onClick={() => setFilters(EMPTY_FILTERS)}
             >
               Reset filters
             </button>
