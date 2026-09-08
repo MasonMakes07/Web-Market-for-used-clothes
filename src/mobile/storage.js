@@ -62,13 +62,24 @@ export async function preparePhoto(file) {
     });
     const ratio = Math.min(1, 1200 / Math.max(img.width, img.height));
     const canvas = document.createElement("canvas");
-    canvas.width = Math.round(img.width * ratio);
-    canvas.height = Math.round(img.height * ratio);
+    canvas.width = Math.max(1, Math.round(img.width * ratio));
+    canvas.height = Math.max(1, Math.round(img.height * ratio));
     const ctx = canvas.getContext("2d");
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    return canvas.toDataURL("image/jpeg", 0.78);
+    // Match the API's encoded-size limit even for highly detailed camera photos.
+    for (const quality of [0.78, 0.65, 0.5, 0.35]) {
+      const encoded = canvas.toDataURL("image/jpeg", quality);
+      if (
+        encoded.startsWith("data:image/jpeg;base64,") &&
+        encoded.length <= 900000
+      )
+        return encoded;
+    }
+    throw new Error(
+      "This photo is too detailed to scan. Try a closer crop or a smaller photo.",
+    );
   } finally {
     URL.revokeObjectURL(url);
   }

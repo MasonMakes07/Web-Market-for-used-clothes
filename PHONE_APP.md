@@ -75,3 +75,7 @@ Implement real conversation delivery and meetup acceptance with participant-only
 ## UCSD account signup
 
 The Profile page now includes a university signup/sign-in entry point. See [UCSD_SIGN_IN.md](UCSD_SIGN_IN.md) for identity-provider setup and a complete feature status table. `VITE_UCSD_AUTH0_CONNECTION` enables the configured campus enterprise redirect independently of scanner settings. Without it, the app honestly shows signup as unavailable; local preview data remains separate from signed-in accounts.
+
+## Add item photos from your phone
+
+Open Sell and tap **Add photo** to choose from your photo library, or **Take photo** to open the phone camera picker. Desktop users can drag files into the same photo area. Photos appear as thumbnails; remove one with its close button or choose **Make cover**. Up to six photos are saved with the device draft, and the first three are used when you explicitly request an AI scan. File upload does not require campus login, but live AI scanning still does.

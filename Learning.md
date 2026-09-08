@@ -49,3 +49,6 @@ Allowing a web-search tool does not guarantee it runs. Require the tool when the
 
 ## Lesson 16: Distinguish initial null from "no results" null
 When a hook starts as null and no-results also sets null, use a separate hasSearched flag so no-results messages do not appear before searching.
+
+## Lesson 17: Make phone photo entry explicit and bound compressed output
+Keep permanent library and camera actions visible even after photos are added. Share validation between dropped files and native pickers, block concurrent upload batches, and check the encoded JPEG size against the scanner limit after compression.

@@ -10,8 +10,11 @@ export default function Sell({ draft, updateDraft, onPublish, notify }) {
   const input = useRef(null);
   const camera = useRef(null);
   const controller = useRef(null);
+  const uploadLock = useRef(false);
+  const dragDepth = useRef(0);
   const session = useSession();
   const [busy, setBusy] = useState(false);
+  const [dragging, setDragging] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [consent, setConsent] = useState(false);
   const [researchPrices, setResearchPrices] = useState(false);
@@ -20,14 +23,14 @@ export default function Sell({ draft, updateDraft, onPublish, notify }) {
   useEffect(() => () => controller.current?.abort(), []);
 
   // Resizes images before persisting and prevents a batch from exceeding six photos.
-  async function upload(event) {
-    const files = Array.from(event.target.files || []);
-    event.target.value = "";
-    if (!files.length) return;
+  async function addPhotos(selectedFiles) {
+    const files = Array.from(selectedFiles || []);
+    if (!files.length || uploadLock.current || scanning) return;
     if (files.length + draft.photos.length > 6) {
       setError("You can add up to six photos.");
       return;
     }
+    uploadLock.current = true;
     setBusy(true);
     setError("");
     setResult(null);
@@ -37,8 +40,24 @@ export default function Sell({ draft, updateDraft, onPublish, notify }) {
     } catch (err) {
       setError(err.message);
     } finally {
+      uploadLock.current = false;
       setBusy(false);
     }
+  }
+
+  // Reset the picker so selecting the same photo again still triggers a change.
+  function upload(event) {
+    const files = Array.from(event.target.files || []);
+    event.target.value = "";
+    void addPhotos(files);
+  }
+
+  // Dropped photos use the same limits and image validation as the phone picker.
+  function dropPhotos(event) {
+    event.preventDefault();
+    dragDepth.current = 0;
+    setDragging(false);
+    void addPhotos(event.dataTransfer.files);
   }
 
   // Requires consent and authenticated access; the server separately checks pilot approval.
@@ -174,7 +193,27 @@ export default function Sell({ draft, updateDraft, onPublish, notify }) {
       )}
       <form onSubmit={publish} className="tt-sell-layout">
         <div>
-          <section className="tt-panel">
+          <section
+            className={`tt-panel tt-photo-uploader ${dragging ? "is-dragging" : ""}`}
+            aria-label="Listing photos"
+            aria-busy={busy}
+            onDragEnter={(event) => {
+              event.preventDefault();
+              dragDepth.current += 1;
+              setDragging(true);
+            }}
+            onDragOver={(event) => {
+              event.preventDefault();
+              event.dataTransfer.dropEffect =
+                busy || scanning || draft.photos.length >= 6 ? "none" : "copy";
+            }}
+            onDragLeave={(event) => {
+              event.preventDefault();
+              dragDepth.current = Math.max(0, dragDepth.current - 1);
+              if (!dragDepth.current) setDragging(false);
+            }}
+            onDrop={dropPhotos}
+          >
             <div className="tt-section-title">
               <h2>
                 <span className="tt-editor-number">01</span> The first
@@ -183,8 +222,27 @@ export default function Sell({ draft, updateDraft, onPublish, notify }) {
               <span>{draft.photos.length}/6</span>
             </div>
             <p className="tt-muted">
-              Show the item, its tag, and any signs of wear.
+              Add a photo from your phone or take one now. Include the tag for a
+              better AI match.
             </p>
+            <div className="tt-photo-actions">
+              <button
+                type="button"
+                className="tt-button"
+                disabled={busy || scanning || draft.photos.length >= 6}
+                onClick={() => input.current.click()}
+              >
+                <Icon name="plus" size={19} /> Add photo
+              </button>
+              <button
+                type="button"
+                className="tt-button tt-button-secondary"
+                disabled={busy || scanning || draft.photos.length >= 6}
+                onClick={() => camera.current.click()}
+              >
+                <Icon name="camera" size={19} /> Take photo
+              </button>
+            </div>
             <div className="tt-upload-grid">
               {draft.photos.map((photo, index) => (
                 <div className="tt-upload-photo" key={photo.slice(-80) + index}>
@@ -202,28 +260,64 @@ export default function Sell({ draft, updateDraft, onPublish, notify }) {
                   >
                     <Icon name="close" size={16} />
                   </button>
-                  {index === 0 && <span>Cover</span>}
+                  {index === 0 ? (
+                    <span>Cover</span>
+                  ) : (
+                    <button
+                      type="button"
+                      className="tt-make-cover"
+                      disabled={busy || scanning}
+                      aria-label={`Make photo ${index + 1} the cover`}
+                      onClick={() => {
+                        updateDraft({
+                          photos: [
+                            photo,
+                            ...draft.photos.filter((_, i) => i !== index),
+                          ],
+                        });
+                        setResult(null);
+                      }}
+                    >
+                      Make cover
+                    </button>
+                  )}
                 </div>
               ))}
               {draft.photos.length < 6 && (
                 <button
                   disabled={busy || scanning}
                   className="tt-upload-add"
+                  aria-label="Choose listing photos"
                   type="button"
                   onClick={() => input.current.click()}
                 >
                   <span className="tt-upload-camera">
                     <Icon name="camera" size={28} />
                   </span>
-                  <strong>{busy ? "Preparing…" : "Add photos"}</strong>
+                  <strong>
+                    {busy
+                      ? "Preparing…"
+                      : dragging
+                        ? "Drop photos here"
+                        : draft.photos.length
+                          ? "Add more"
+                          : "Your next listing starts here"}
+                  </strong>
                   {!draft.photos.length && (
-                    <span>Choose up to 6 photos from your library</span>
+                    <span>
+                      Tap to choose photos
+                      <span className="tt-desktop-drop-hint">
+                        {" "}
+                        or drag them here
+                      </span>
+                    </span>
                   )}
                 </button>
               )}
             </div>
             <input
               ref={input}
+              aria-label="Add listing photos from your library"
               type="file"
               accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
               multiple
@@ -232,20 +326,20 @@ export default function Sell({ draft, updateDraft, onPublish, notify }) {
             />
             <input
               ref={camera}
+              aria-label="Take a listing photo"
               type="file"
               accept="image/*"
               capture="environment"
               onChange={upload}
               hidden
             />
-            <button
-              type="button"
-              className="tt-button tt-button-secondary tt-full"
-              disabled={busy || scanning || draft.photos.length >= 6}
-              onClick={() => camera.current.click()}
-            >
-              <Icon name="camera" size={19} /> Take a photo
-            </button>
+            <p className="tt-upload-help" role="status">
+              {busy
+                ? "Preparing your photos…"
+                : draft.photos.length
+                  ? `${draft.photos.length} of 6 photos added. Your first 3 photos will be used for an AI scan.`
+                  : "Up to 6 photos · 15 MB per photo"}
+            </p>
           </section>
           <section className="tt-scan-panel">
             <span className="tt-assistant-badge">OPTIONAL · AI ASSIST</span>

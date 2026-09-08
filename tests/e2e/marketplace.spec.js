@@ -226,3 +226,60 @@ test("UCSD signup explains pending setup without collecting a university passwor
     page.getByText("Device preview · not verified", { exact: true }),
   ).toBeVisible();
 });
+
+// Exercise actual picker events, drag/drop, and rejection without relying on hidden-input uploads alone.
+test("phone photo picker and desktop drop share safe upload controls", async ({
+  page,
+}) => {
+  await page.goto("/#/sell");
+  const uploader = page.getByRole("region", { name: "Listing photos" });
+  const photo = path.resolve("public/app-icon-192.png");
+  const pickerPromise = page.waitForEvent("filechooser");
+  await uploader
+    .getByRole("button", { name: "Add photo", exact: true })
+    .click();
+  const picker = await pickerPromise;
+  expect(picker.isMultiple()).toBeTruthy();
+  await picker.setFiles(photo);
+  await expect(page.getByAltText("Listing photo 1")).toBeVisible();
+
+  const cameraPromise = page.waitForEvent("filechooser");
+  await uploader
+    .getByRole("button", { name: "Take photo", exact: true })
+    .click();
+  const cameraPicker = await cameraPromise;
+  expect(await cameraPicker.element().getAttribute("capture")).toBe(
+    "environment",
+  );
+  await cameraPicker.setFiles(path.resolve("public/app-icon-512.png"));
+  await expect(page.getByAltText("Listing photo 2")).toBeVisible();
+  await page.getByRole("button", { name: "Make photo 2 the cover" }).click();
+  await persisted(page);
+
+  const dropped = await page.evaluateHandle(async () => {
+    const bytes = await (await fetch("/app-icon-192.png")).arrayBuffer();
+    const transfer = new DataTransfer();
+    transfer.items.add(new File([bytes], "drop.png", { type: "image/png" }));
+    return transfer;
+  });
+  await uploader.dispatchEvent("dragenter", { dataTransfer: dropped });
+  await expect(uploader).toHaveClass(/is-dragging/);
+  await uploader.dispatchEvent("drop", { dataTransfer: dropped });
+  await expect(page.getByAltText("Listing photo 3")).toBeVisible();
+  await expect(uploader).not.toHaveClass(/is-dragging/);
+  await dropped.dispose();
+
+  await page
+    .locator("input[type=file][multiple]")
+    .setInputFiles({
+      name: "not-a-photo.txt",
+      mimeType: "text/plain",
+      buffer: Buffer.from("not a photo"),
+    });
+  await expect(page.getByRole("alert")).toContainText("Choose a JPEG");
+  await expect(page.locator(".tt-upload-photo")).toHaveCount(3);
+  await page.getByRole("button", { name: "Remove photo 3" }).click();
+  await persisted(page);
+  await page.reload();
+  await expect(page.locator(".tt-upload-photo")).toHaveCount(2);
+});
