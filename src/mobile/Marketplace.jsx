@@ -40,14 +40,13 @@ const GENDER_FILTERS = ["Men's", "Women's"];
 // Gender isn't a meaningful attribute outside apparel, so a "Fits" filter
 // narrows to these categories rather than pulling in unrelated Unisex items
 // like electronics or books.
-const GENDERED_CATEGORIES = ["Clothing", "Shoes"];
+const GENDERED_CATEGORIES = ["Clothing", "Shoes", "Accessories"];
 
 const EMPTY_FILTERS = Object.freeze({
   college: "",
   condition: "",
   price: "",
   sort: "newest",
-  sizes: Object.freeze([]),
   genders: Object.freeze([]),
 });
 
@@ -274,19 +273,9 @@ function PhoneApp() {
   const localListings = data.listings.filter(
     (item) => item.sellerId === "local-owner",
   );
-  const availableSizes = Array.from(
-    new Set(data.listings.map((item) => item.size).filter(Boolean)),
-  ).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-  // Sizes stop appearing here once nothing is listed in them (e.g. after a delete
-  // or reset); drop them from the active filter so it can't stay stuck invisibly on.
-  const activeSizes = filters.sizes.filter((value) =>
-    availableSizes.includes(value),
-  );
   const filterCount =
     [filters.college, filters.condition, filters.price].filter(Boolean)
-      .length +
-    activeSizes.length +
-    filters.genders.length;
+      .length + filters.genders.length;
 
   // Filters combine rather than replacing one another; numeric sorts do not mutate saved data.
   function visibleListings(savedOnly) {
@@ -299,7 +288,6 @@ function PhoneApp() {
         (!filters.college || item.college === filters.college) &&
         (!filters.condition || item.condition === filters.condition) &&
         (filters.price === "" || item.price <= Number(filters.price)) &&
-        (!activeSizes.length || activeSizes.includes(item.size)) &&
         (!filters.genders.length ||
           (GENDERED_CATEGORIES.includes(item.category) &&
             (item.gender === "Unisex" ||
@@ -1040,28 +1028,6 @@ function PhoneApp() {
                 </label>
               ))}
             </fieldset>
-            {availableSizes.length > 0 && (
-              <fieldset className="tt-filter-checks">
-                <legend>Size</legend>
-                {availableSizes.map((value) => (
-                  <label key={value} className="tt-checkbox">
-                    <input
-                      type="checkbox"
-                      checked={filters.sizes.includes(value)}
-                      onChange={(event) =>
-                        setFilters((current) => ({
-                          ...current,
-                          sizes: event.target.checked
-                            ? [...current.sizes, value]
-                            : current.sizes.filter((v) => v !== value),
-                        }))
-                      }
-                    />
-                    {value}
-                  </label>
-                ))}
-              </fieldset>
-            )}
             <label>
               Maximum price
               <input
