@@ -52,3 +52,12 @@ When a hook starts as null and no-results also sets null, use a separate hasSear
 
 ## Lesson 17: Make phone photo entry explicit and bound compressed output
 Keep permanent library and camera actions visible even after photos are added. Share validation between dropped files and native pickers, block concurrent upload batches, and check the encoded JPEG size against the scanner limit after compression.
+
+## Lesson 18: Re-tinting a background in a later CSS pass inherits the old text color
+`marketplace.css` is stacked theme passes, so a new pass that sets only `background` on a selector keeps whatever `color` an earlier pass set. Re-tinting the active category pill to a dark background left the previous pass's dark `color: #102e46` in place and the label became unreadable — the build and lint both stayed green. When overriding a background in a later pass, always set `color` in the same rule, and confirm the result in a screenshot rather than by reading the file.
+
+## Lesson 18b: Key sample data on an immutable id, and never let a local action move someone else's number
+Sample seller stats were keyed on the seller's display name while a local listing takes its seller from the editable profile name, so naming your profile "Maya" stamped the fictional Maya's 4.9 rating and 85 followers onto your own listing, complete with a prompt to rate yourself. Key sample records on something the user cannot type — here `item.sample` plus the sample id. Separately, adding your own follow to a displayed follower count asserts your device-local action changed another student's number; show the follow state on the button and leave their count alone. Both are lesson 12 violations that lint and the build cannot see.
+
+## Lesson 19: Adding a field to persisted state needs a version bump and a backfill
+A filter that treats a missing field as "excluded" silently erases returning users' listings, and a `<select>` bound to a missing key displays a default it never writes. Bump the state version, migrate on read as an ordered chain of steps so any older version lands on the current shape, and keep the guard refusing versions newer than the app so unknown data is never overwritten. Verify by seeding each old version into IndexedDB and reloading.

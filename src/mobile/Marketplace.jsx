@@ -15,11 +15,22 @@ import {
   CATEGORIES,
   CONDITIONS,
   SPOTS,
+  SELLERS,
+  SAMPLE_FOLLOWERS,
+  sampleSeller,
+  STATE_VERSION,
   EMPTY_DRAFT,
   newId,
 } from "./data.js";
 import { readState, writeState } from "./storage.js";
-import { EmptyState, ItemCard, ItemImage, Modal } from "./components.jsx";
+import {
+  EmptyState,
+  ItemCard,
+  ItemImage,
+  Modal,
+  RatingInput,
+  Stars,
+} from "./components.jsx";
 import SessionProvider, { useSession } from "./Session.jsx";
 import Sell from "./Sell.jsx";
 import CampusAccount from "./CampusAccount.jsx";
@@ -97,7 +108,9 @@ function PhoneApp() {
         if (!active) return;
         if (
           saved &&
-          (![1, 2].includes(saved.version) ||
+          (!Number.isInteger(saved.version) ||
+            saved.version < 1 ||
+            saved.version > STATE_VERSION ||
             !Array.isArray(saved.listings) ||
             !Array.isArray(saved.threads))
         )
@@ -163,6 +176,41 @@ function PhoneApp() {
         ? current.saved.filter((item) => item !== id)
         : [...current.saved, id],
     }));
+  }
+
+  // Following is device-local: the sample seller is never told about it. The
+  // membership test lives inside the updater so two clicks in one task cannot
+  // both read the pre-render list and add the same name twice.
+  function toggleFollow(seller) {
+    setData((current) => {
+      const following = current.following.includes(seller);
+      return {
+        ...current,
+        following: following
+          ? current.following.filter((name) => name !== seller)
+          : [...current.following, seller],
+      };
+    });
+    setToast(
+      data.following.includes(seller)
+        ? `You unfollowed ${seller} in your preview.`
+        : `You’re following ${seller} in your preview.`,
+    );
+  }
+
+  // A score of 0 clears the rating rather than storing a zero-star review.
+  function rateSeller(seller, score) {
+    setData((current) => {
+      const ratings = { ...current.ratings };
+      if (score) ratings[seller] = score;
+      else delete ratings[seller];
+      return { ...current, ratings };
+    });
+    setToast(
+      score
+        ? `You rated ${seller} ${score} star${score === 1 ? "" : "s"} on this device.`
+        : `Your rating for ${seller} was removed.`,
+    );
   }
 
   // Starts a device-only conversation and opens it in Inbox.
@@ -514,7 +562,9 @@ function PhoneApp() {
             </NavLink>
           ))}
           <div className="tt-nav-bottom">
-            <span className="tt-nav-flower">✳</span>
+            <span className="tt-nav-flower">
+              <Icon name="shell" size={26} />
+            </span>
             <p>
               Your campus.
               <br />A little closer.
@@ -616,10 +666,6 @@ function PhoneApp() {
                           <span>Listed</span>
                         </div>
                         <div>
-                          <strong>{data.saved.length}</strong>
-                          <span>Saved</span>
-                        </div>
-                        <div>
                           <strong>
                             {
                               localListings.filter(
@@ -628,6 +674,14 @@ function PhoneApp() {
                             }
                           </strong>
                           <span>Sold</span>
+                        </div>
+                        <div>
+                          <strong>{SAMPLE_FOLLOWERS.length}</strong>
+                          <span>Followers · sample</span>
+                        </div>
+                        <div>
+                          <strong>{data.following.length}</strong>
+                          <span>Following</span>
                         </div>
                       </div>
                       <label>
@@ -761,6 +815,73 @@ function PhoneApp() {
                           </EmptyState>
                         )}
                       </section>
+                      <section className="tt-panel tt-social">
+                        <div className="tt-section-title">
+                          <h2>Your campus circle</h2>
+                          <Icon name="users" size={19} />
+                        </div>
+                        <p className="tt-muted">
+                          Follows and ratings stay on this device. The students
+                          below are part of the preview’s sample community.
+                        </p>
+                        <h3>Following ({data.following.length})</h3>
+                        {data.following.length ? (
+                          <ul className="tt-people">
+                            {data.following.map((name) => (
+                              <li key={name}>
+                                <span className="tt-avatar">{name[0]}</span>
+                                <span className="tt-person-copy">
+                                  <strong>{name}</strong>
+                                  {SELLERS[name] && (
+                                    <Stars
+                                      value={SELLERS[name].rating}
+                                      count={SELLERS[name].reviews}
+                                      size={11}
+                                    />
+                                  )}
+                                </span>
+                                <button
+                                  className="tt-follow is-following"
+                                  aria-pressed="true"
+                                  onClick={() => toggleFollow(name)}
+                                >
+                                  Following
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="tt-muted">
+                            Open a sample listing and tap Follow to start your
+                            circle.
+                          </p>
+                        )}
+                        <h3>Followers ({SAMPLE_FOLLOWERS.length})</h3>
+                        <ul className="tt-people">
+                          {SAMPLE_FOLLOWERS.map((name) => (
+                            <li key={name}>
+                              <span className="tt-avatar">{name[0]}</span>
+                              <span className="tt-person-copy">
+                                <strong>{name}</strong>
+                                <small>Sample student</small>
+                              </span>
+                              <button
+                                className={`tt-follow ${
+                                  data.following.includes(name)
+                                    ? "is-following"
+                                    : ""
+                                }`}
+                                aria-pressed={data.following.includes(name)}
+                                onClick={() => toggleFollow(name)}
+                              >
+                                {data.following.includes(name)
+                                  ? "Following"
+                                  : "Follow back"}
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      </section>
                       <section className="tt-panel tt-settings">
                         <h2>A few essentials</h2>
                         <button onClick={() => setInstall(true)}>
@@ -874,8 +995,58 @@ function PhoneApp() {
                     {selected.college} College ·{" "}
                     {selected.sample ? "sample profile" : "device profile"}
                   </p>
+                  {sampleSeller(selected) && (
+                    <p className="tt-seller-stats">
+                      <Stars
+                        value={sampleSeller(selected).rating}
+                        count={sampleSeller(selected).reviews}
+                      />
+                      <span>
+                        {sampleSeller(selected).followers} sample followers
+                      </span>
+                    </p>
+                  )}
                 </div>
+                {sampleSeller(selected) && (
+                  <button
+                    className={`tt-follow ${
+                      data.following.includes(selected.seller)
+                        ? "is-following"
+                        : ""
+                    }`}
+                    aria-pressed={data.following.includes(selected.seller)}
+                    onClick={() => toggleFollow(selected.seller)}
+                  >
+                    {data.following.includes(selected.seller)
+                      ? "Following"
+                      : "Follow"}
+                  </button>
+                )}
               </div>
+              {sampleSeller(selected) && (
+                <div className="tt-rate-seller">
+                  <div>
+                    <strong>Rate this seller</strong>
+                    <p>
+                      Saved on your device. Sample ratings above belong to the
+                      preview community and don’t change.
+                    </p>
+                  </div>
+                  <RatingInput
+                    label={`Your rating for ${selected.seller}`}
+                    value={data.ratings[selected.seller] || 0}
+                    onChange={(score) => rateSeller(selected.seller, score)}
+                  />
+                  {Boolean(data.ratings[selected.seller]) && (
+                    <button
+                      className="tt-text-button"
+                      onClick={() => rateSeller(selected.seller, 0)}
+                    >
+                      Remove my rating
+                    </button>
+                  )}
+                </div>
+              )}
               <div className="tt-meetup-hint">
                 <Icon name="pin" />
                 <p>
@@ -1125,9 +1296,12 @@ function PhoneApp() {
             </p>
             <h3>What is shared</h3>
             <p>
-              Local listings, profiles, reports, and messages are not sent to
-              other students. Sample product photos load from Unsplash. Calendar
-              buttons open your calendar provider with the event details.
+              Local listings, profiles, reports, messages, follows, and ratings
+              are not sent to other students. Seller ratings and follower counts
+              belong to the preview’s sample community and do not change when
+              you rate or follow. Sample product photos load from Unsplash.
+              Calendar buttons open your calendar provider with the event
+              details.
             </p>
             <h3>AI photo scanning</h3>
             <p>

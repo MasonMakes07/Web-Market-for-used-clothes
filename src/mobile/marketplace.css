@@ -1463,6 +1463,126 @@ input[type="checkbox"] {
 .tt-profile-card label {
   text-align: left;
 }
+.tt-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.tt-star-row {
+  display: inline-flex;
+  gap: 1px;
+  color: #d8bd77;
+}
+.tt-star-row svg.is-filled {
+  fill: currentColor;
+}
+.tt-star-value {
+  font-size: 10px;
+  font-weight: 600;
+  color: #6c7a83;
+}
+.tt-star-value small {
+  font-weight: 400;
+  color: #96a2a8;
+}
+.tt-item-rating {
+  margin-top: 6px;
+}
+.tt-seller-stats {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+.tt-seller-stats > span {
+  font-size: 10px;
+  color: #7e8b8b;
+}
+.tt-follow {
+  margin-left: auto;
+  align-self: center;
+  border: 1px solid var(--tt-navy);
+  background: var(--tt-navy);
+  color: #fff;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.tt-follow.is-following {
+  background: transparent;
+  color: var(--tt-navy);
+  border-color: #cdd7dd;
+}
+.tt-rate-seller {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--tt-border);
+}
+.tt-rate-seller strong {
+  font-size: 12px;
+}
+.tt-rate-seller p {
+  font-size: 10px;
+  line-height: 1.7;
+  color: #8a9288;
+  margin-top: 4px;
+}
+.tt-rating-input {
+  display: flex;
+  gap: 4px;
+}
+.tt-star-button {
+  color: #c3cdd3;
+  padding: 2px;
+  line-height: 0;
+}
+.tt-star-button svg.is-filled {
+  fill: currentColor;
+  color: #d8bd77;
+}
+.tt-rate-seller .tt-text-button {
+  align-self: flex-start;
+}
+.tt-social h3 {
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.3px;
+  margin: 20px 0 10px;
+}
+.tt-people {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.tt-people li {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 12px;
+  border: 1px solid var(--tt-border);
+  border-radius: 10px;
+}
+.tt-person-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.tt-person-copy strong {
+  font-size: 12px;
+}
+.tt-person-copy small {
+  font-size: 9px;
+  color: #96a2a8;
+}
 .tt-own-listing {
   display: flex;
   gap: 12px;
@@ -3016,4 +3136,476 @@ input[type="checkbox"] {
   .tt-photo-uploader {
     transition: none;
   }
+}
+
+/* ------------------------------------------------------------------
+   La Jolla Cove: UCSD navy and gold over warm sand, cove teal and sea
+   foam. Layered last so it re-tints the shared surfaces above without
+   restating their layout.
+   ------------------------------------------------------------------ */
+:root {
+  background: #f4efe4;
+  --tt-navy: #14324b;
+  --tt-gold: #ffcd00;
+  --tt-ocean: #2e7f9e;
+  --tt-foam: #7fb9c4;
+  --tt-sand: #f7f2e8;
+  --tt-shell: #fffdf9;
+  --tt-border: #e7ded0;
+  --tt-muted: #5d6f7a;
+}
+body {
+  min-height: 100dvh;
+  background:
+    radial-gradient(1100px 420px at 50% -140px, #d9edf1 0%, transparent 72%),
+    linear-gradient(180deg, #eff6f2 0%, #f7f2e8 42%, #f3ecdd 100%);
+  background-attachment: fixed;
+}
+.tt-header {
+  background: #fffdf9e6;
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid #e3dccd;
+}
+.tt-brand-symbol {
+  background: linear-gradient(150deg, var(--tt-ocean), var(--tt-navy));
+}
+.tt-brand small {
+  color: #6d8794;
+}
+.tt-header-search {
+  background: #f2ece0;
+  border: 1px solid #e8e0d0;
+}
+.tt-campus {
+  border-color: #e0d8c8;
+  background: var(--tt-shell);
+}
+.tt-campus-dot {
+  background: var(--tt-ocean);
+}
+.tt-nav > a.active {
+  background: #e2f0f2;
+  color: #17475c;
+}
+.tt-nav > a.tt-nav-sell > span:first-child {
+  background: linear-gradient(150deg, var(--tt-ocean), var(--tt-navy));
+}
+.tt-nav-bottom button:first-of-type {
+  color: var(--tt-ocean);
+}
+.tt-preview-bar {
+  color: #5d7280;
+}
+.tt-dot {
+  background: var(--tt-ocean);
+}
+
+/* Hero: cove water with a soft break of surf along the bottom edge. */
+.tt-hero {
+  background: linear-gradient(135deg, #0f3b56 0%, #17546f 55%, #2e7f9e 100%);
+}
+.tt-hero::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 92px;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath d='M0 74C170 22 330 102 540 74c210-28 330-66 520-36 58 9 103 22 140 33v49H0z' fill='%23ffffff' fill-opacity='.13'/%3E%3Cpath d='M0 99c200-44 360 6 560-16 200-22 340-38 500-8 55 10 100 22 140 33v12H0z' fill='%23ffffff' fill-opacity='.11'/%3E%3C/svg%3E")
+    bottom / 100% 100% no-repeat;
+}
+.tt-hero-copy,
+.tt-hero-image {
+  z-index: 2;
+}
+.tt-hero-pill > span {
+  background: var(--tt-gold);
+}
+.tt-hero-button {
+  background: var(--tt-gold);
+  color: #10314a;
+}
+.tt-campus-stamp {
+  background: var(--tt-gold);
+  color: #10314a;
+  border-color: #0f3b56;
+}
+.tt-hero-caption {
+  background: var(--tt-shell);
+  color: #17475c;
+}
+
+/* Surfaces: shell white cards on sand, with a warm rather than grey edge. */
+.tt-panel,
+.tt-job-card {
+  background: var(--tt-shell);
+  border-color: var(--tt-border);
+  box-shadow: 0 1px 2px #1432130a;
+}
+.tt-item-photo {
+  background: #ece4d6;
+}
+.tt-category-row {
+  border-bottom-color: var(--tt-border);
+}
+.tt-category-row button {
+  background: var(--tt-shell);
+  border-color: #e5ddcd;
+}
+.tt-category-row button.active {
+  background: #1b5872;
+  border-color: #1b5872;
+  color: #fff;
+}
+.tt-filter-button {
+  background: var(--tt-shell);
+  border-color: #e0d8c8;
+}
+.tt-filter-button.active {
+  border-color: var(--tt-ocean);
+  color: #1b5872;
+}
+.tt-button-secondary {
+  background: var(--tt-shell);
+  border-color: #cfdde2;
+}
+.tt-photo-label {
+  background: #fffdf9ee;
+  color: #1b5872;
+}
+.tt-tags > span,
+.tt-sample-badge {
+  background: #e8f1f0;
+  color: #26596b;
+}
+.tt-soft-label {
+  background: #eaf2ef;
+  border-color: #d9e6e2;
+  color: #45707a;
+}
+.tt-college-dot {
+  background: var(--tt-foam);
+}
+.tt-avatar {
+  background: #dfeaea;
+  color: #22566a;
+}
+.tt-empty > span {
+  background: #e6f0ef;
+  color: #3d7f8c;
+}
+.tt-price-note,
+.tt-jobs-note {
+  background: #f3ede1;
+}
+.tt-price-note svg,
+.tt-jobs-note svg {
+  color: var(--tt-ocean);
+}
+.tt-community-strip {
+  background: linear-gradient(120deg, #e5f1f0 0%, #f2ece0 100%);
+  border-color: #dbe8e4;
+  color: #2f6272;
+}
+.tt-community-strip p {
+  color: #6c8590;
+}
+.tt-jobs-cta {
+  background: linear-gradient(135deg, #123f5a 0%, #2e7f9e 100%);
+}
+
+/* Ratings and campus circle pick up the gold and cove tones. */
+.tt-star-row,
+.tt-star-button svg.is-filled {
+  color: #e0a92b;
+}
+.tt-follow {
+  background: var(--tt-ocean);
+  border-color: var(--tt-ocean);
+}
+.tt-follow.is-following {
+  background: transparent;
+  color: #1b5872;
+  border-color: #b9d3da;
+}
+.tt-people li {
+  border-color: var(--tt-border);
+  background: #fdfaf3;
+}
+.tt-profile-stats strong {
+  font-size: 21px;
+  color: #17384f;
+}
+
+/* Lesson 13: keep the phone introduction short enough that the first finds
+   are on screen without scrolling. */
+@media (max-width: 560px) {
+  .tt-hero {
+    min-height: 208px;
+  }
+  .tt-hero-copy {
+    padding: 18px 0 18px 18px;
+  }
+  .tt-hero h1 {
+    font-size: clamp(21px, 6.1vw, 28px);
+    margin: 13px 0 9px;
+  }
+  .tt-hero-copy > p {
+    font-size: 10px;
+    line-height: 1.6;
+  }
+  .tt-hero-button {
+    margin-top: 13px;
+    min-height: 40px;
+    padding: 9px 13px;
+  }
+  .tt-hero::after {
+    height: 58px;
+  }
+  .tt-hero-image {
+    top: 26px;
+    bottom: 18px;
+  }
+  .tt-category-row {
+    padding: 14px 18px 14px 0;
+  }
+  .tt-feed-heading {
+    padding: 16px 0 14px;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Shells and sand: trade the white surfaces for warm shell cream and
+   scatter a faint scallop pattern behind the app.
+   ------------------------------------------------------------------ */
+:root {
+  --tt-shell: #fdf6e9;
+  --tt-shell-deep: #f8eeda;
+  --tt-border: #ecdfc7;
+}
+body {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'%3E%3Cg fill='none' stroke='%23c2a06a' stroke-opacity='.13' stroke-width='1.1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg transform='translate(24 30) rotate(-14) scale(1.7)'%3E%3Cpath d='M12 20.6c-4.9-1.8-8.4-6.2-8.9-11.5a1.9 1.9 0 0 1 1.2-2 23.6 23.6 0 0 1 15.4 0 1.9 1.9 0 0 1 1.2 2c-.5 5.3-4 9.7-8.9 11.5Z'/%3E%3Cpath d='M12 20.6V7.4M9.1 19.6 7.2 8M14.9 19.6 16.8 8'/%3E%3C/g%3E%3Cg transform='translate(158 96) rotate(22) scale(1.25)'%3E%3Cpath d='M12 20.6c-4.9-1.8-8.4-6.2-8.9-11.5a1.9 1.9 0 0 1 1.2-2 23.6 23.6 0 0 1 15.4 0 1.9 1.9 0 0 1 1.2 2c-.5 5.3-4 9.7-8.9 11.5Z'/%3E%3Cpath d='M12 20.6V7.4M9.1 19.6 7.2 8M14.9 19.6 16.8 8'/%3E%3C/g%3E%3Cg transform='translate(74 176) rotate(8) scale(1.45)'%3E%3Cpath d='M12 20.6c-4.9-1.8-8.4-6.2-8.9-11.5a1.9 1.9 0 0 1 1.2-2 23.6 23.6 0 0 1 15.4 0 1.9 1.9 0 0 1 1.2 2c-.5 5.3-4 9.7-8.9 11.5Z'/%3E%3Cpath d='M12 20.6V7.4M9.1 19.6 7.2 8M14.9 19.6 16.8 8'/%3E%3C/g%3E%3Cg transform='translate(206 208) rotate(-26) scale(1)'%3E%3Cpath d='M12 20.6c-4.9-1.8-8.4-6.2-8.9-11.5a1.9 1.9 0 0 1 1.2-2 23.6 23.6 0 0 1 15.4 0 1.9 1.9 0 0 1 1.2 2c-.5 5.3-4 9.7-8.9 11.5Z'/%3E%3Cpath d='M12 20.6V7.4M9.1 19.6 7.2 8M14.9 19.6 16.8 8'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")
+      0 0 / 300px 300px repeat,
+    radial-gradient(1100px 420px at 50% -140px, #d9edf1 0%, transparent 72%),
+    linear-gradient(180deg, #eff6f2 0%, #f7f0e0 42%, #f2e9d6 100%);
+  background-attachment: fixed;
+}
+
+/* Surfaces move off white onto shell cream. */
+.tt-panel,
+.tt-job-card,
+.tt-modal,
+.tt-category-row button,
+.tt-button-secondary,
+.tt-filter-button,
+.tt-campus,
+.tt-hero-caption,
+.tt-details-form input,
+.tt-details-form select,
+.tt-details-form textarea,
+.tt-profile-card input,
+.tt-profile-card select,
+.tt-profile-card textarea,
+.tt-filter-fields input,
+.tt-filter-fields select,
+.tt-schedule-form input,
+.tt-schedule-form select,
+.tt-price-input {
+  background: var(--tt-shell);
+}
+.tt-header {
+  background: #fdf6e9e8;
+}
+.tt-nav {
+  background: #fdf6e9f2;
+}
+.tt-header-search {
+  background: var(--tt-shell-deep);
+  border-color: #ecdfc7;
+}
+.tt-avatar {
+  border-color: var(--tt-shell);
+}
+.tt-save {
+  background: #fdf6e9ee;
+}
+.tt-photo-label {
+  background: #fdf6e9f0;
+}
+.tt-item-photo {
+  background: var(--tt-shell-deep);
+}
+.tt-people li {
+  background: var(--tt-shell);
+}
+.tt-price-note,
+.tt-jobs-note {
+  background: var(--tt-shell-deep);
+}
+.tt-modal,
+.tt-panel,
+.tt-job-card {
+  border-color: var(--tt-border);
+}
+
+/* Shell accents. */
+.tt-nav-flower {
+  color: #c69a52;
+}
+.tt-community-strip {
+  background: linear-gradient(120deg, #e6f0ee 0%, #fbf2e0 100%);
+  border-color: #e6dcc6;
+}
+.tt-empty > span {
+  background: var(--tt-shell-deep);
+  color: #b08544;
+}
+.tt-nav-flower {
+  font-size: 0;
+  line-height: 0;
+  display: block;
+}
+
+/* Campus account card joins the sand palette instead of sitting cold. */
+.tt-campus-account {
+  background: linear-gradient(120deg, #e8f1f1 0%, #fbf2e0 100%);
+  border-color: #e2dcc8;
+}
+.tt-campus-account .tt-campus-account-status {
+  background: var(--tt-shell);
+}
+.tt-campus-account-icon {
+  background: linear-gradient(150deg, var(--tt-ocean), var(--tt-navy));
+  color: var(--tt-gold);
+}
+
+/* Small print sat between 3:1 and 4.4:1 on the warmer surfaces; darken the
+   muted tones so captions clear WCAG AA at their real size. */
+.tt-star-value {
+  color: #5d6a72;
+}
+.tt-star-value small,
+.tt-person-copy small,
+.tt-item-text p > span:last-child {
+  color: #66727a;
+}
+.tt-rate-seller p,
+.tt-price-note p,
+.tt-jobs-note p,
+.tt-muted,
+.tt-community-strip p,
+.tt-seller-stats > span,
+.tt-job-blurb,
+.tt-job-location,
+.tt-job-employer {
+  color: #616e68;
+}
+.tt-profile-stats span {
+  color: #6b7768;
+}
+.tt-profile-card > p {
+  color: #616e68;
+}
+.tt-profile-stats span {
+  color: #616e68;
+}
+
+/* Legibility pass: the sand ground is warmer and slightly darker than the old
+   near-white, so the shared greys are re-cut to clear AA at their real sizes. */
+.tt-nav > a {
+  color: #4f5d66;
+}
+.tt-page-heading p:not(.tt-eyebrow),
+.tt-empty p,
+.tt-feed-heading h2 > span,
+.tt-local-note,
+.tt-preview-detail {
+  color: #5c6a70;
+}
+.tt-footer,
+.tt-footer button,
+.tt-footer > span:first-child,
+.tt-nav-bottom button {
+  color: #59665f;
+}
+.tt-text-button {
+  color: #4c5f56;
+}
+.tt-brand small {
+  color: #55677a;
+}
+.tt-photo-uploader .tt-section-title span,
+.tt-desktop-drop-hint {
+  color: #5c6a70;
+}
+.tt-thread-item strong > span,
+.tt-thread-item p,
+.tt-thread-item small {
+  color: #5b6a58;
+}
+.tt-thread-item p {
+  color: #566352;
+}
+.tt-section-title > span {
+  color: #5c6a70;
+}
+
+/* Review follow-ups: give the follow button real contrast margin, keep the
+   Jobs CTA subtitle readable across the whole gradient, and make an unrated
+   star row perceivable on its own. */
+.tt-follow {
+  background: #1b5872;
+  border-color: #1b5872;
+}
+.tt-follow.is-following {
+  background: transparent;
+  color: #1b5872;
+  border-color: #b9d3da;
+}
+.tt-jobs-cta {
+  background: linear-gradient(135deg, #123f5a 0%, #256f8d 100%);
+}
+.tt-jobs-cta-copy span {
+  color: #ffffffe6;
+}
+.tt-star-button {
+  color: #8d99a1;
+}
+
+/* Short phones (SE-class) need the intro tighter still, or the first find
+   never clears the bottom nav. */
+@media (max-height: 700px) and (max-width: 560px) {
+  .tt-hero {
+    min-height: 178px;
+  }
+  .tt-hero-copy {
+    padding: 15px 0 15px 16px;
+  }
+  .tt-hero h1 {
+    font-size: clamp(19px, 5.6vw, 24px);
+    margin: 10px 0 7px;
+  }
+  .tt-hero-copy > p {
+    display: none;
+  }
+  .tt-hero-button {
+    margin-top: 11px;
+    min-height: 38px;
+  }
+  .tt-hero::after {
+    height: 46px;
+  }
+  .tt-category-row {
+    padding: 11px 18px 11px 0;
+  }
+  .tt-feed-heading {
+    padding: 13px 0 11px;
+  }
+}
+.tt-sell .tt-price-note {
+  background: var(--tt-shell-deep);
 }

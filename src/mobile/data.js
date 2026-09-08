@@ -38,6 +38,29 @@ export const EMPTY_DRAFT = {
   photos: [],
 };
 
+// The fictional students behind the sample listings. Ratings and follower counts
+// belong to that sample community only — nothing here reflects a real student,
+// and the preview never claims your own activity reached anyone.
+export const SELLERS = {
+  Maya: { rating: 4.9, reviews: 27, followers: 84, college: "Sixth" },
+  Jamie: { rating: 4.7, reviews: 12, followers: 41, college: "Muir" },
+  Jordan: { rating: 5, reviews: 8, followers: 63, college: "Warren" },
+  Sam: { rating: 4.5, reviews: 19, followers: 37, college: "Seventh" },
+  Taylor: { rating: 4.8, reviews: 15, followers: 52, college: "Marshall" },
+  Alex: { rating: 4.6, reviews: 23, followers: 46, college: "Revelle" },
+};
+
+// Sample students shown as following your preview profile, mirroring the sample
+// conversation that already ships with the preview.
+export const SAMPLE_FOLLOWERS = ["Maya", "Jordan", "Taylor"];
+
+// Sample reputation is keyed on the listing being sample inventory, not on the
+// seller's display name: a student who names their profile "Maya" must never
+// inherit the fictional Maya's rating and followers on their own listing.
+export function sampleSeller(item) {
+  return item?.sample ? SELLERS[item.seller] : undefined;
+}
+
 // LAN HTTP previews lack randomUUID; getRandomValues remains available on those origins.
 export function newId() {
   if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
@@ -164,9 +187,11 @@ export function initialState() {
     }),
   );
   return {
-    version: 2,
+    version: 3,
     listings,
     saved: ["jeans"],
+    following: ["Maya"],
+    ratings: {},
     draft: EMPTY_DRAFT,
     profile: {
       name: "Your name",
@@ -197,13 +222,24 @@ export function initialState() {
 }
 
 // Backfills fields added after version 1 so returning devices don't lose listings
-// to filters that key off a field their stored data predates.
+// to filters that key off a field their stored data predates. Steps apply in
+// order, so a device on any older version lands on the current shape.
+export const STATE_VERSION = 3;
+
 export function migrate(saved) {
-  if (saved.version === 2) return saved;
-  return {
-    ...saved,
-    version: 2,
-    listings: saved.listings.map((item) => ({ gender: "Unisex", ...item })),
-    draft: { ...EMPTY_DRAFT, ...saved.draft },
-  };
+  // The load guard rejects a non-integer version, but migrate is exported:
+  // treat anything unrecognisable as the oldest shape rather than skipping steps.
+  let state = Number.isInteger(saved.version)
+    ? saved
+    : { ...saved, version: 1 };
+  if (state.version < 2)
+    state = {
+      ...state,
+      version: 2,
+      listings: state.listings.map((item) => ({ gender: "Unisex", ...item })),
+      draft: { ...EMPTY_DRAFT, ...state.draft },
+    };
+  if (state.version < 3)
+    state = { ...state, version: 3, following: [], ratings: {} };
+  return state;
 }
