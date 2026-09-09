@@ -9,13 +9,13 @@ export default function CampusAccount() {
   const [redirecting, setRedirecting] = useState(false);
 
   // Show redirect errors without exposing provider details or accepting campus passwords.
-  async function connect() {
+  async function connect(provider) {
     setError("");
     setRedirecting(true);
     try {
-      await session.campusLogin();
+      await session.socialLogin(provider);
     } catch {
-      setError("UCSD sign-in could not start. Please try again later.");
+      setError("Sign-in could not start. Please try again later.");
     } finally {
       setRedirecting(false);
     }
@@ -27,21 +27,22 @@ export default function CampusAccount() {
         <Icon name="shield" size={28} />
       </span>
       <div>
-        <p className="tt-eyebrow">A COMMUNITY FOR CURRENT UCSD STUDENTS</p>
+        <p className="tt-eyebrow">YOUR TRITONS THRIFTS ACCOUNT</p>
         <h2>
           {session.user
             ? "Account connected."
-            : "Your campus account. Your community."}
+            : "Sign in. Find your next favorite."}
         </h2>
         <p>
           {session.user
             ? "Sign-in is complete. Student eligibility still needs to be checked before shared marketplace access. This preview remains on your device."
-            : "Join or sign in using your UCSD account. The university handles your password and Duo verification."}
+            : "Continue with Google or Apple. Your password stays with your sign-in provider."}
         </p>
-        {!session.campusConfigured && !session.user && (
+        {!session.socialConfigured && !session.user && (
           <p className="tt-campus-account-status">
-            UCSD sign-up is not available yet. The university connection is
-            still being set up. You can explore the device preview now.
+            {session.ownerPreview
+              ? "Your phone is connected for private AI testing. Account sign-in is separate."
+              : "Google and Apple sign-in need the secure HTTPS app link. You can still use the local preview."}
           </p>
         )}
         {session.user ? (
@@ -58,17 +59,33 @@ export default function CampusAccount() {
             Sign out
           </button>
         ) : (
-          <button
-            className="tt-button"
-            onClick={connect}
-            disabled={
-              !session.campusConfigured || session.loading || redirecting
-            }
-          >
-            <Icon name="user" size={18} />
-            {redirecting ? "Opening UCSD sign-in…" : "Continue with UCSD"}
-            <Icon name="arrow" size={18} />
-          </button>
+          <div className="tt-social-actions">
+            <button
+              className="tt-button"
+              onClick={() => connect("google")}
+              disabled={
+                !session.socialConfigured || session.loading || redirecting
+              }
+            >
+              <Icon name="user" size={18} />{" "}
+              {redirecting ? "Opening sign-in…" : "Continue with Google"}
+            </button>
+            <button
+              className="tt-button tt-button-secondary"
+              onClick={() => connect("apple")}
+              disabled={
+                !session.socialConfigured ||
+                !session.appleConfigured ||
+                session.loading ||
+                redirecting
+              }
+            >
+              Continue with Apple
+            </button>
+            {!session.appleConfigured && (
+              <small>Apple sign-in needs its provider setup completed.</small>
+            )}
+          </div>
         )}
         {error && (
           <p className="tt-error" role="alert">

@@ -31,6 +31,7 @@ class ScannerTests(unittest.TestCase):
                 "AUTH0_DOMAIN": "test.auth0.com",
                 "AUTH0_AUDIENCE": "test-api",
                 "UCSD_AUTH0_CONNECTION": "campus",
+                "SCANNER_AUTH_MODE": "campus",
                 "APPROVED_AUTH0_SUBJECTS": "auth0|student",
                 "OPENAI_API_KEY": "test-only-not-real",
                 "SCAN_USAGE_DB": self.directory.name + "/usage.sqlite3",
@@ -66,7 +67,12 @@ class ScannerTests(unittest.TestCase):
         self.directory.cleanup()
 
     def headers(
-        self, subject="auth0|student", audience="test-api", expiry=60, campus=None
+        self,
+        subject="auth0|student",
+        audience="test-api",
+        expiry=60,
+        campus=None,
+        identity=None,
     ):
         """Signs a short-lived test token with controllable claims."""
         now = int(datetime.now(timezone.utc).timestamp())
@@ -77,6 +83,7 @@ class ScannerTests(unittest.TestCase):
                 "iss": "https://test.auth0.com/",
                 "iat": now - 1,
                 "exp": now + expiry,
+                "https://tritonsthrift.tech/identity": identity,
                 "https://tritonsthrift.tech/campus": (
                     campus
                     if campus is not None
@@ -211,9 +218,49 @@ class ScannerTests(unittest.TestCase):
                 )
             self.assertEqual(
                 self.client.get("/account", headers=self.headers()).json(),
-                {"student_approved": True},
+                {"account_approved": True, "student_approved": True},
             )
             paid.assert_not_awaited()
+
+    def test_social_mode_checks_signed_provider_claims_without_claiming_student_status(
+        self,
+    ):
+        """Google/Apple fallback is explicit; email strings alone never authenticate."""
+        with patch.dict(os.environ, {"SCANNER_AUTH_MODE": "social"}):
+            for connection in ["google-oauth2", "apple"]:
+                identity = {
+                    "connection": connection,
+                    "email": "person@example.com",
+                    "email_verified": True,
+                }
+                response = self.client.get(
+                    "/account", headers=self.headers(identity=identity)
+                )
+                self.assertEqual(
+                    response.json(),
+                    {"account_approved": True, "student_approved": False},
+                )
+            self.assertEqual(
+                self.client.get("/account", headers=self.headers()).status_code, 403
+            )
+            for identity in [
+                {
+                    "connection": "password",
+                    "email": "person@example.com",
+                    "email_verified": True,
+                },
+                {
+                    "connection": "google-oauth2",
+                    "email": "person@example.com",
+                    "email_verified": False,
+                },
+            ]:
+                self.assertEqual(
+                    self.client.get(
+                        "/account", headers=self.headers(identity=identity)
+                    ).status_code,
+                    403,
+                )
 
     def test_duplicate_scans_reuse_result_only_for_same_account(self):
         """Identical retries cost nothing; changing price research starts a fresh scan."""
@@ -302,6 +349,27 @@ class ScannerTests(unittest.TestCase):
         self.assertIsNone(scanner.verified_pricing(body, [values[0], values[0]]))
         self.assertIsNone(scanner.verified_pricing({}, values))
 
+    def test_price_matching_excludes_premium_brands_for_unknown_labels(self):
+        self.assertFalse(scanner.comparable_brand_matches(None, "Nike gray hoodie"))
+        self.assertTrue(scanner.comparable_brand_matches(None, "Unbranded gray hoodie"))
+        self.assertFalse(scanner.comparable_brand_matches("Nike", "Adidas gray hoodie"))
+        self.assertFalse(
+            scanner.comparable_brand_matches("Nike", "Nikeland sweatshirt")
+        )
+        self.assertTrue(
+            scanner.comparable_brand_matches("Nike", "Used NIKE gray hoodie")
+        )
+
+    def test_seller_notes_are_bounded_before_paid_request(self):
+        with patch.object(scanner, "request_draft", new_callable=AsyncMock) as paid:
+            response = self.client.post(
+                "/scan",
+                json={**self.payload, "seller_notes": "x" * 1001},
+                headers=self.headers(),
+            )
+            self.assertEqual(response.status_code, 422)
+            paid.assert_not_awaited()
+
     def test_complete_model_response_and_request_contract(self):
         """Uses a mocked HTTP response to test the actual schema and paid-call limits."""
         result = {
@@ -315,6 +383,15 @@ class ScannerTests(unittest.TestCase):
             },
             "comparables": [],
         }
+        invalid_prices = {
+            **result,
+            "comparables": [
+                {"title": "No asking price", "url": "https://example.com", "price": 0}
+            ],
+        }
+        cleaned = scanner.ModelResult.model_validate(invalid_prices)
+        self.assertEqual(cleaned.draft.title, "Blue shirt")
+        self.assertEqual(cleaned.comparables, [])
         response = httpx.Response(
             200,
             request=httpx.Request("POST", "https://api.openai.com/v1/responses"),

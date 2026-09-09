@@ -1,5 +1,7 @@
 # Triton Thrift phone app foundation
 
+**Current sign-in update:** the requested Google/Apple fallback is implemented in code. Follow [SOCIAL_SIGN_IN.md](SOCIAL_SIGN_IN.md) for provider configuration and current scanner verification status. The campus instructions below describe the original campus mode, which remains the server default until social mode is explicitly enabled.
+
 The default app is now a mobile-first React web app, built to become the home-screen app in the launch plan. This is working base code, not a native iOS binary or a deployed multi-user marketplace.
 
 ## Run and try it

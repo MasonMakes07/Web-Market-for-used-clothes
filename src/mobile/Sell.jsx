@@ -64,11 +64,14 @@ export default function Sell({ draft, updateDraft, onPublish, notify }) {
   async function scan() {
     if (!session.configured) {
       setError(
-        "The AI service is not connected yet. Your photos and manual listing work now; see setup instructions to connect the scanner.",
+        session.ownerError ||
+          (session.ownerPreview
+            ? "Connecting to your private scanner. Please try again once it is connected."
+            : "The AI service is not connected yet. Your photos and manual listing work now; see setup instructions to connect the scanner."),
       );
       return;
     }
-    if (!session.user) {
+    if (!session.user && !session.ownerPreview) {
       try {
         await session.login();
       } catch {
@@ -80,7 +83,7 @@ export default function Sell({ draft, updateDraft, onPublish, notify }) {
     setError("");
     setResult(null);
     controller.current = new AbortController();
-    const timeout = setTimeout(() => controller.current?.abort(), 45000);
+    const timeout = setTimeout(() => controller.current?.abort(), 75000);
     try {
       const token = await session.token();
       const response = await scanPhotos(
@@ -88,6 +91,10 @@ export default function Sell({ draft, updateDraft, onPublish, notify }) {
         token,
         controller.current.signal,
         researchPrices,
+        session.ownerPreview,
+        [draft.title, draft.brand, draft.size, draft.description]
+          .filter(Boolean)
+          .join(". "),
       );
       setResult(response);
     } catch (err) {
@@ -350,8 +357,9 @@ export default function Sell({ draft, updateDraft, onPublish, notify }) {
               <p className="tt-eyebrow">LESS TYPING. MORE THRIFTING.</p>
               <h2>Let your photos do the work.</h2>
               <p>
-                Let AI help with the title, category, and details. You make the
-                final call.
+                Photograph your item and its label. AI identifies the details;
+                optional price research finds similar listings. Review
+                everything before using it.
               </p>
             </div>
             <label className="tt-consent">
@@ -386,14 +394,19 @@ export default function Sell({ draft, updateDraft, onPublish, notify }) {
               <Icon name="sparkle" size={19} />
               {scanning
                 ? "Looking at your item…"
-                : session.configured && !session.user
+                : session.configured && !session.user && !session.ownerPreview
                   ? "Sign in to scan"
                   : "Scan my item"}
             </button>
             <small>
-              {session.configured
-                ? "Available to approved pilot accounts. Your price stays your choice."
-                : "AI connection pending · manual listing is ready to use."}
+              {session.ownerPreview
+                ? session.ownerError ||
+                  (session.loading
+                    ? "Connecting this phone…"
+                    : "Connected for your private test · powered by OpenAI")
+                : session.configured
+                  ? "Available to approved pilot accounts. Your price stays your choice."
+                  : "AI connection pending · manual listing is ready to use."}
             </small>
           </section>
           {result && (

@@ -218,9 +218,9 @@ test("UCSD signup explains pending setup without collecting a university passwor
   await page.goto("/#/profile");
   const account = page.getByRole("region", { name: "UCSD account" });
   await expect(
-    account.getByRole("button", { name: "Continue with UCSD" }),
+    account.getByRole("button", { name: "Continue with Apple" }),
   ).toBeDisabled();
-  await expect(account).toContainText("UCSD sign-up is not available yet");
+  await expect(account.getByRole("button", { name: "Continue with Google" })).toBeVisible();
   await expect(page.locator('input[type="password"]')).toHaveCount(0);
   await expect(
     page.getByText("Device preview · not verified", { exact: true }),

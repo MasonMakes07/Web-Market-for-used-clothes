@@ -3213,8 +3213,7 @@ body {
   height: 92px;
   z-index: 1;
   pointer-events: none;
-  background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath d='M0 74C170 22 330 102 540 74c210-28 330-66 520-36 58 9 103 22 140 33v49H0z' fill='%23ffffff' fill-opacity='.13'/%3E%3Cpath d='M0 99c200-44 360 6 560-16 200-22 340-38 500-8 55 10 100 22 140 33v12H0z' fill='%23ffffff' fill-opacity='.11'/%3E%3C/svg%3E")
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath d='M0 74C170 22 330 102 540 74c210-28 330-66 520-36 58 9 103 22 140 33v49H0z' fill='%23ffffff' fill-opacity='.13'/%3E%3Cpath d='M0 99c200-44 360 6 560-16 200-22 340-38 500-8 55 10 100 22 140 33v12H0z' fill='%23ffffff' fill-opacity='.11'/%3E%3C/svg%3E")
     bottom / 100% 100% no-repeat;
 }
 .tt-hero-copy,
@@ -3618,4 +3617,15 @@ body {
 }
 .tt-brand-symbol svg {
   stroke-width: 1.9;
+}
+
+.tt-social-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.tt-social-actions small {
+  flex-basis: 100%;
+  color: #536d82;
+  font-size: 11px;
 }
