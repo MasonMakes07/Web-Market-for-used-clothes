@@ -22,7 +22,7 @@ export default function CampusAccount() {
   }
 
   return (
-    <section className="tt-campus-account" aria-label="UCSD account">
+    <section className="tt-campus-account" aria-label="Account sign-in">
       <span className="tt-campus-account-icon">
         <Icon name="shield" size={28} />
       </span>
@@ -35,7 +35,7 @@ export default function CampusAccount() {
         </h2>
         <p>
           {session.user
-            ? "Sign-in is complete. Student eligibility still needs to be checked before shared marketplace access. This preview remains on your device."
+            ? "You are signed in. Listings and profile edits in this preview still save on this device."
             : "Continue with Google or Apple. Your password stays with your sign-in provider."}
         </p>
         {!session.socialConfigured && !session.user && (
@@ -87,9 +87,10 @@ export default function CampusAccount() {
             )}
           </div>
         )}
-        {error && (
+        {(error || session.error) && (
           <p className="tt-error" role="alert">
-            {error}
+            {error ||
+              "Account sign-in could not complete. Please try again or check the app’s sign-in configuration."}
           </p>
         )}
       </div>

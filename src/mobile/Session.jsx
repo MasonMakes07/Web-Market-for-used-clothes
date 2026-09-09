@@ -53,7 +53,8 @@ function AuthSession({ children }) {
             authorizationParams: { connection: campusConnection },
           });
         },
-        token: () => auth.getAccessTokenSilently(),
+        token: () =>
+          auth.getAccessTokenSilently({ authorizationParams: { audience } }),
         logout: () =>
           auth.logout({ logoutParams: { returnTo: window.location.origin } }),
       }}
@@ -65,6 +66,7 @@ function AuthSession({ children }) {
 
 // Owner pairing is a development-only connection, never a UCSD identity.
 function OwnerSession({ children, pairing }) {
+  const account = useContext(SessionContext);
   const [status, setStatus] = useState({ ready: false, error: "" });
   useEffect(() => {
     const controller = new AbortController();
@@ -94,9 +96,8 @@ function OwnerSession({ children, pairing }) {
   return (
     <SessionContext.Provider
       value={{
+        ...account,
         configured: status.ready,
-        campusConfigured: false,
-        user: null,
         ownerPreview: true,
         loading: !status.ready && !status.error,
         ownerError: status.error,
@@ -111,8 +112,12 @@ function OwnerSession({ children, pairing }) {
 // Keeps unfinished service configuration from blocking the usable device preview.
 export default function SessionProvider({ children }) {
   const [pairing] = useState(readOwnerPairing);
-  if (import.meta.env.DEV && pairing)
-    return <OwnerSession pairing={pairing}>{children}</OwnerSession>;
+  const content =
+    import.meta.env.DEV && pairing ? (
+      <OwnerSession pairing={pairing}>{children}</OwnerSession>
+    ) : (
+      children
+    );
   if (!enabled || !window.isSecureContext)
     return (
       <SessionContext.Provider
@@ -123,14 +128,17 @@ export default function SessionProvider({ children }) {
           loading: false,
         }}
       >
-        {children}
+        {content}
       </SessionContext.Provider>
     );
   return (
     <Auth0Provider
       domain={domain}
       clientId={clientId}
-      authorizationParams={{ redirect_uri: window.location.origin, audience }}
+      authorizationParams={{
+        redirect_uri: window.location.origin,
+        scope: "openid profile email",
+      }}
       onRedirectCallback={(appState) => {
         // Accept only known internal tabs; never navigate to caller-supplied URLs.
         const returnTo = appState?.returnTo === "/sell" ? "/sell" : "/profile";
@@ -138,7 +146,7 @@ export default function SessionProvider({ children }) {
         window.history.replaceState({}, "", `/#${returnTo}`);
       }}
     >
-      <AuthSession>{children}</AuthSession>
+      <AuthSession>{content}</AuthSession>
     </Auth0Provider>
   );
 }

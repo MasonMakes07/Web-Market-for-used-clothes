@@ -287,7 +287,7 @@ def reserve_scan(subject):
         monthly = db.execute(
             "SELECT COUNT(*) FROM attempts WHERE month = ?", (month,)
         ).fetchone()[0]
-        if daily >= int(os.getenv("SCAN_DAILY_LIMIT", "5")):
+        if daily >= int(os.getenv("SCAN_DAILY_LIMIT", "3")):
             raise HTTPException(
                 429,
                 "You have reached today’s scan limit. Manual listing is still available.",

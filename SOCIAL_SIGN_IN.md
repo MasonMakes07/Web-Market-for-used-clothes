@@ -19,3 +19,13 @@ The development service must bind to loopback with proxy-header trust disabled. 
 ## Verification status
 
 Local authorization tests cover Google/Apple signed claims and the private connection's token, expiry, and loopback checks. A live iPhone-sized Chrome test on the Wi-Fi address passed photo upload, OpenAI analysis with price research, applying the draft, and pairing persistence after reload. Real iPhone Safari confirmation and production deployment remain outstanding. Invalid comparison prices previously caused HTTP 502; those entries are now discarded without losing the clothing draft.
+
+## Verified deployment blockers
+
+The public Auth0 application settings currently list Google and password login, but no Apple connection. A real browser Google redirect from `http://localhost:5173` reached Auth0 and failed with `Callback URL mismatch`.
+
+In Auth0, open Applications → Applications → this application's Settings. Add `http://localhost:5173` to Allowed Callback URLs, Allowed Logout URLs, and Allowed Web Origins for Mac testing. Preserve the existing production entries. Also add the exact stable HTTPS origin used for the new phone app to those three lists; a phone's HTTP Wi-Fi URL cannot be used for this OAuth flow. Save changes.
+
+For Apple web login, create a Services ID linked to a Sign in with Apple-enabled App ID in Apple Developer. Configure its return URL as `https://dev-qs5lemnualuybfil.us.auth0.com/login/callback`. In Auth0 → Authentication → Social → Apple, enter the Services ID, Team ID, Key ID and signing key securely, then enable the connection for this application. Never commit the signing key. Set `VITE_APPLE_AUTH0_CONNECTION=apple` after this is complete.
+
+Private scanner pairing can now coexist with social login on a secure origin. Basic login no longer requests the scanner API audience; scanner access requests it separately. Neither provider has been verified through a completed user login yet.

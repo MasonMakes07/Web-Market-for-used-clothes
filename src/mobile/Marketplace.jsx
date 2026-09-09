@@ -704,25 +704,42 @@ function PhoneApp() {
                           }
                         />
                       </label>
-                      <label>
-                        College
-                        <select
-                          value={data.profile.college}
-                          onChange={(event) =>
-                            setData((current) => ({
-                              ...current,
-                              profile: {
-                                ...current.profile,
-                                college: event.target.value,
-                              },
-                            }))
-                          }
-                        >
-                          {COLLEGES.map((value) => (
-                            <option key={value}>{value}</option>
+                      <fieldset className="tt-college-picker">
+                        <legend>Your college</legend>
+                        <div className="tt-college-options">
+                          {COLLEGES.map((college) => (
+                            <label key={college} className="tt-college-option">
+                              <input
+                                type="radio"
+                                name="profile-college"
+                                value={college}
+                                checked={data.profile.college === college}
+                                onChange={() =>
+                                  setData((current) => ({
+                                    ...current,
+                                    profile: { ...current.profile, college },
+                                  }))
+                                }
+                              />
+                              <img
+                                src={
+                                  college === "Roosevelt"
+                                    ? "/ERC.png"
+                                    : college === "Eighth"
+                                      ? "/Eighth.svg"
+                                      : college === "Seventh"
+                                        ? "/Seventh.svg"
+                                        : `/${college}.png`
+                                }
+                                alt=""
+                                width="48"
+                                height="48"
+                              />
+                              <span>{college}</span>
+                            </label>
                           ))}
-                        </select>
-                      </label>
+                        </div>
+                      </fieldset>
                       <label>
                         A little about you
                         <textarea
