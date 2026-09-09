@@ -37,28 +37,34 @@ Install `auth0/ucsd-campus-login.cjs` as an Auth0 Post Login Action, configure i
 
 The scanner now requires `UCSD_AUTH0_CONNECTION` on the server and validates the namespaced campus claim added by that Action. A subject in `APPROVED_AUTH0_SUBJECTS` alone is no longer enough. `/account` uses the same checks without triggering a scan. Maintain that allowlist only for independently verified current students and remove approvals when eligibility ends. Missing connection configuration fails closed. Synthetic identity tests pass; university sign-in still needs actual configuration and a real end-to-end test.
 
-## What is proven by tests
+## What ships today: social sign-in
 
-Every link the app controls is covered, so the only untested step is UCSD's own identity provider.
+The account entry point currently offers **Continue with Google** and **Continue with Apple** through Auth0, not UCSD. UCSD federation is still planned; `Session.jsx` keeps `campusLogin` and `campusConfigured`, but no UI reaches them yet.
+
+A social login proves control of a Google or Apple account and nothing else. It is not enrollment, not a UCSD address, and not authorization — shared marketplace access stays gated server-side exactly as before.
+
+## What is proven by tests
 
 | Link | Proven by | Command |
 | --- | --- | --- |
-| App sends Auth0 the approved connection, over PKCE, returning only to its own origin | `tests/campus/campus-signin.spec.js` | `npm run test:campus` |
-| Sign-in stays disabled and contacts no provider while unconfigured | `tests/campus/campus-unconfigured.spec.js` | `npm run test:campus` |
-| Action denies wrong connection, lookalike domains, unverified email; stamps the campus claim | `tests/campus-login.test.js` | `npm test` |
-| Server rejects forged/missing campus claims and fails closed with no connection set | `backend/test_scanner.py` | `python -m unittest backend.test_scanner` |
-| No campus password or Duo field exists in this origin | `tests/campus/campus-signin.spec.js` | `npm run test:campus` |
+| Google and Apple each send Auth0 their own connection, over PKCE, returning only to this origin | `tests/signin/social-signin.spec.js` | `npm run test:signin` |
+| A missing Apple provider disables only Apple and explains itself | `tests/signin/apple-unconfigured.spec.js` | `npm run test:signin` |
+| With no Auth0 application, sign-in is disabled and no provider is contacted | `tests/signin/signin-unconfigured.spec.js` | `npm run test:signin` |
+| No password field exists in this origin | `tests/signin/social-signin.spec.js` | `npm run test:signin` |
+| Signing in is never presented as proof of enrollment | `tests/signin/social-signin.spec.js` | `npm run test:signin` |
+| *(UCSD, for later)* Action denies wrong connection, lookalike domains, unverified email; stamps the campus claim | `tests/campus-login.test.js` | `npm test` |
+| *(UCSD, for later)* Server rejects forged/missing campus claims and fails closed with no connection set | `backend/test_scanner.py` | `python -m unittest backend.test_scanner` |
 
-The campus e2e run starts two throwaway dev servers, points the configured one at a reserved `.example` tenant, and aborts every request to it. No real credential or tenant is involved.
+The sign-in run starts three throwaway dev servers, points the configured one at a reserved `.example` tenant, and aborts every request to it. No real credential or tenant is involved. Each server sets every Auth0 variable explicitly, including to empty, because Vite also loads the gitignored `.env`; relying on omission would make results depend on whose machine they run on.
 
 ## Exactly what remains
 
 Nothing further can be done in this repository without the two external steps first.
 
 1. **Blocked on UCSD IT.** Approval for an independently operated student marketplace to federate with campus SSO, plus the protocol and released attributes. Still unconfirmed — start at the [UCSD Service Desk](https://support.ucsd.edu/).
-2. **Blocked on the Auth0 tenant.** Create the SPA application, then the enterprise connection once UCSD supplies metadata. Check entitlement: enterprise connections are typically a paid tier.
+2. **Blocked on the Auth0 tenant.** The SPA application already exists — `.env` supplies `VITE_AUTH0_DOMAIN`, `VITE_AUTH0_CLIENT_ID` and `VITE_AUTH0_AUDIENCE`, which is what social sign-in runs on. What is missing is the *enterprise connection*, which can only be created once UCSD supplies metadata. Check entitlement: enterprise connections are typically a paid tier.
 3. **Then configuration only**, no code changes:
-   - `.env.local` (absent today, so campus sign-in is inert): `VITE_AUTH0_DOMAIN`, `VITE_AUTH0_CLIENT_ID`, `VITE_AUTH0_AUDIENCE`, and `VITE_UCSD_AUTH0_CONNECTION` set to the exact connection name.
+   - `VITE_UCSD_AUTH0_CONNECTION` set to the exact connection name (unset today, so `campusLogin` rejects). A UI entry point for it also has to come back, since the account card now offers Google and Apple.
    - `backend/.env`: add `UCSD_AUTH0_CONNECTION` with that same name. **It is currently missing**, so `/scan` and `/account` return `503 UCSD account verification is not configured` for every authenticated request. That is the intended fail-closed behaviour, not a bug, but it does mean campus-authenticated scanning cannot work until the value is set.
    - Install `auth0/ucsd-campus-login.cjs` as a Post Login Action with `TRITONS_CLIENT_ID` and `UCSD_CONNECTION_NAME` secrets, attach it to the login flow, and restrict the application's enabled connections to the campus one.
    - Register the HTTPS origin as callback, logout and allowed web origin. The HTTP LAN preview cannot run this login: `Session.jsx` requires a secure context.

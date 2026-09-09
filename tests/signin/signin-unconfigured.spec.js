@@ -1,11 +1,9 @@
 import { test, expect } from "@playwright/test";
 
-// The app's current shipping state: no campus connection is configured.
-// Learning.md lesson 14 requires campus sign-up to stay visibly unavailable
-// until a real identity connection exists, so that has to be enforced by a
-// test rather than by remembering to check the copy.
+// No Auth0 application configured: the app must degrade to something honest
+// rather than to a button that fails after the user taps it.
 
-test("campus sign-in stays unavailable with no connection configured", async ({
+test("sign-in is unavailable and contacts no provider", async ({
   page,
   baseURL,
 }) => {
@@ -15,15 +13,17 @@ test("campus sign-in stays unavailable with no connection configured", async ({
   await page.goto("/#/profile");
 
   await expect(
-    page.getByText(/UCSD sign-up is not available yet/i),
+    page.getByText(/sign-in need the secure HTTPS app link/i),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: /Continue with UCSD/i }),
+    page.getByRole("button", { name: /Continue with Google/i }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: /Continue with Apple/i }),
   ).toBeDisabled();
 
-  // While unconfigured the only third party the page may contact is the font
-  // CDN the stylesheet imports. Matching on "auth0" alone would be wrong: the
-  // vendored SDK's own local module URL contains that word.
+  // The only third party the page may contact is the font CDN the stylesheet
+  // imports; matching on "auth0" alone would hit the vendored SDK's own URL.
   const origin = new URL(baseURL).origin;
   const fontHosts = [
     "https://fonts.googleapis.com",

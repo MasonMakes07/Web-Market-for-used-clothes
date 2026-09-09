@@ -13,7 +13,7 @@
     "test:e2e": "playwright test",
     "test:pwa": "npm run build && playwright test --config playwright.pwa.config.js",
     "format:phone": "prettier --write src/mobile src/main.jsx src/LegacyRoot.jsx tests playwright.config.js",
-    "test:campus": "playwright test --config playwright.campus.config.js"
+    "test:signin": "playwright test --config playwright.signin.config.js"
   },
   "dependencies": {
     "@auth0/auth0-react": "^2.16.1",
