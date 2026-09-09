@@ -3629,3 +3629,31 @@ body {
   color: #536d82;
   font-size: 11px;
 }
+
+.tt-price-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.tt-price-option {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 8px;
+  border: 1px solid #cbd8dc;
+  border-radius: 14px;
+  background: #fff;
+  color: #17344a;
+  cursor: pointer;
+}
+.tt-price-option strong {
+  font-size: 1.25rem;
+}
+.tt-price-option small {
+  font-size: 0.7rem;
+}
+.tt-price-option[aria-pressed="true"] {
+  border-color: #17344a;
+  background: #e9f2f0;
+  box-shadow: inset 0 0 0 1px #17344a;
+}

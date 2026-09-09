@@ -14,3 +14,9 @@ Clothing-specific behavior:
 - Round suggested prices to cents. Keep one bounded OpenAI request, at most one search call, existing quotas, and per-account caching.
 
 The private phone connection is separate from social login; see `SOCIAL_SIGN_IN.md`. Pairing URLs are private, expiring, and development-only. Production still requires a deployed scanner and configured authentication.
+
+## Low-cost pricing strategies
+
+The default scan now includes a rough, explicitly unverified estimated asking price in the same OpenAI response. The server computes Sell fast at 80%, Optimal at 100%, and Premium at 120% of that baseline, bounded to $1–$100,000. When optional live research returns suitable evidence, its median replaces the estimate. These are asking-price strategies, not forecasts of sale speed or an optimized appraisal. Unclear or specialist items may return no estimate.
+
+A sample no-search hoodie scan used 1,460 input and 129 output tokens: approximately $0.00168 at GPT-5.4 mini rates ($0.75/M input, $4.50/M output). That is about $1.68 per 1,000 similar scans, excluding hosting. A previous researched scan used 10,033 input, 354 output and one search, about $0.0191. The sample saving is roughly 91%, with lower pricing confidence. Actual costs depend on photos and output. Search remains opt-in; identical successful per-account requests reuse cached results for 24 hours.

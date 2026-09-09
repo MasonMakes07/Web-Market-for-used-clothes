@@ -360,6 +360,16 @@ class ScannerTests(unittest.TestCase):
             scanner.comparable_brand_matches("Nike", "Used NIKE gray hoodie")
         )
 
+    def test_price_strategies_prefer_evidence_and_label_estimates(self):
+        options = scanner.price_options(None, 25)
+        self.assertEqual(
+            [options[k] for k in ("sell_fast", "optimal", "premium")], [20, 25, 30]
+        )
+        self.assertEqual(options["basis"], "ai_estimate")
+        self.assertEqual(scanner.price_options({"median": 40}, 25)["optimal"], 40)
+        self.assertIsNone(scanner.price_options(None, None))
+        self.assertEqual(scanner.price_options(None, 1)["sell_fast"], 1)
+
     def test_seller_notes_are_bounded_before_paid_request(self):
         with patch.object(scanner, "request_draft", new_callable=AsyncMock) as paid:
             response = self.client.post(

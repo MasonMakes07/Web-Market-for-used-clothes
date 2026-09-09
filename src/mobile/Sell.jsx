@@ -377,7 +377,7 @@ export default function Sell({ draft, updateDraft, onPublish, notify }) {
                 onChange={(event) => setResearchPrices(event.target.checked)}
                 disabled={scanning}
               />{" "}
-              Also find comparable asking prices on the web.
+              Add live price research (optional, higher cost).
             </label>
             <button
               type="button"
@@ -433,6 +433,37 @@ export default function Sell({ draft, updateDraft, onPublish, notify }) {
                 {result.applied ? "Details applied" : "Use these details"}
                 <Icon name="check" size={18} />
               </button>
+              {result.price_options && (
+                <div className="tt-price-strategies">
+                  <h3>Choose your selling pace</h3>
+                  <p className="tt-muted">{result.price_options.note}</p>
+                  <div className="tt-price-options">
+                    {[
+                      ["sell_fast", "Sell fast", "Lower asking price"],
+                      ["optimal", "Optimal", "Suggested starting point"],
+                      ["premium", "Premium", "Aim higher; allow more time"],
+                    ].map(([key, label, hint]) => (
+                      <button
+                        type="button"
+                        key={key}
+                        className="tt-price-option"
+                        aria-pressed={
+                          Number(draft.price) === result.price_options[key]
+                        }
+                        onClick={() =>
+                          updateDraft({
+                            price: String(result.price_options[key]),
+                          })
+                        }
+                      >
+                        <span>{label}</span>
+                        <strong>${result.price_options[key].toFixed(2)}</strong>
+                        <small>{hint}</small>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               {result.pricing ? (
                 <div className="tt-price-note">
                   <div>
@@ -461,8 +492,8 @@ export default function Sell({ draft, updateDraft, onPublish, notify }) {
                 </div>
               ) : (
                 <p className="tt-muted">
-                  No price evidence returned. Compare prices below or choose
-                  your own price.
+                  No suitable live comparisons returned. Compare prices below or
+                  choose your own price.
                 </p>
               )}
             </section>
