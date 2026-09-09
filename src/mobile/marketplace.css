@@ -581,56 +581,123 @@ input[type="checkbox"] {
 }
 .tt-jobs-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
 }
-.tt-job-card {
+.tt-job-tile {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 16px 17px;
   border: 1px solid var(--tt-border);
-  border-radius: 13px;
-  padding: 20px;
-  background: #fff;
+  border-radius: 14px;
+  background: var(--tt-shell);
+  transition:
+    transform 0.16s,
+    border-color 0.16s,
+    box-shadow 0.16s;
+}
+.tt-job-tile:hover {
+  transform: translateY(-2px);
+  border-color: #bfd6dd;
+  box-shadow: 0 6px 18px #14324b12;
+}
+.tt-job-tile-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: #e2f0f2;
+  color: #1b5872;
+}
+.tt-job-tile-copy {
   display: flex;
   flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
 }
-.tt-sample-badge {
-  display: inline-flex;
-  align-self: flex-start;
-  align-items: center;
-  border-radius: 4px;
-  padding: 5px 8px;
+.tt-job-tile-copy strong {
+  font-size: 13px;
+}
+.tt-job-tile-copy > span {
   font-size: 10px;
-  font-weight: 650;
-  background: #eef1e9;
-  color: #456253;
-  margin-bottom: 10px;
+  line-height: 1.6;
+  color: #616e68;
 }
-.tt-job-card h3 {
-  font-size: 15px;
-  font-weight: 600;
+.tt-job-tile > svg:last-of-type {
+  flex-shrink: 0;
+  color: #8ba3ad;
 }
-.tt-job-employer {
-  font-size: 11px;
-  color: #7b8788;
-  margin-top: 3px;
+.tt-alerts {
+  margin-top: 26px;
 }
-.tt-job-card .tt-tags {
-  margin: 12px 0;
+.tt-alerts-head {
+  display: flex;
+  gap: 15px;
+  align-items: flex-start;
 }
-.tt-job-location {
+.tt-alerts-icon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  background: linear-gradient(150deg, var(--tt-ocean), var(--tt-navy));
+  color: var(--tt-gold);
+}
+.tt-alerts-head h2 {
+  font-size: 20px;
+  letter-spacing: -0.6px;
+  margin-top: 2px;
+}
+.tt-alerts-head p:not(.tt-eyebrow) {
+  font-size: 12px;
+  line-height: 1.75;
+  color: #616e68;
+  margin-top: 7px;
+  max-width: 460px;
+}
+.tt-alert-steps {
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+  display: grid;
+  gap: 9px;
+}
+.tt-alert-steps li {
+  counter-increment: step;
+  display: flex;
+  align-items: baseline;
+  gap: 11px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #40525c;
+}
+.tt-alert-steps li::before {
+  content: counter(step);
+  flex-shrink: 0;
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  background: #e2f0f2;
+  color: #1b5872;
+  font-size: 10px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  transform: translateY(3px);
+}
+.tt-alerts-actions {
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-size: 10px;
-  color: #87928c;
-}
-.tt-job-blurb {
-  font-size: 11px;
-  line-height: 1.7;
-  color: #6d7c81;
-  margin: 10px 0 16px;
-}
-.tt-job-card .tt-button {
-  margin-top: auto;
+  gap: 16px;
+  margin-top: 20px;
+  flex-wrap: wrap;
 }
 .tt-footer {
   display: flex;
@@ -1993,6 +2060,7 @@ input[type="checkbox"] {
   }
   .tt-jobs-grid {
     grid-template-columns: 1fr;
+    gap: 11px;
   }
   .tt-item-photo {
     border-radius: 10px;
@@ -3238,8 +3306,7 @@ body {
 }
 
 /* Surfaces: shell white cards on sand, with a warm rather than grey edge. */
-.tt-panel,
-.tt-job-card {
+.tt-panel {
   background: var(--tt-shell);
   border-color: var(--tt-border);
   box-shadow: 0 1px 2px #1432130a;
@@ -3275,8 +3342,7 @@ body {
   background: #fffdf9ee;
   color: #1b5872;
 }
-.tt-tags > span,
-.tt-sample-badge {
+.tt-tags > span {
   background: #e8f1f0;
   color: #26596b;
 }
@@ -3396,7 +3462,6 @@ body {
 
 /* Surfaces move off white onto shell cream. */
 .tt-panel,
-.tt-job-card,
 .tt-modal,
 .tt-category-row button,
 .tt-button-secondary,
@@ -3446,8 +3511,7 @@ body {
   background: var(--tt-shell-deep);
 }
 .tt-modal,
-.tt-panel,
-.tt-job-card {
+.tt-panel {
   border-color: var(--tt-border);
 }
 
@@ -3498,9 +3562,7 @@ body {
 .tt-muted,
 .tt-community-strip p,
 .tt-seller-stats > span,
-.tt-job-blurb,
-.tt-job-location,
-.tt-job-employer {
+.tt-job-tile-copy > span {
   color: #616e68;
 }
 .tt-profile-stats span {
@@ -3656,4 +3718,19 @@ body {
   border-color: #17344a;
   background: #e9f2f0;
   box-shadow: inset 0 0 0 1px #17344a;
+}
+
+/* Job tiles step down before the single-column breakpoint. */
+@media (max-width: 1100px) and (min-width: 561px) {
+  .tt-jobs-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Align the alert steps and actions under the heading, past the icon column. */
+@media (min-width: 561px) {
+  .tt-alert-steps,
+  .tt-alerts-actions {
+    padding-left: 61px;
+  }
 }

@@ -1,71 +1,72 @@
-// UCSD's Handshake instance. Postings live behind campus SSO, so this app links
-// out to Handshake rather than mirroring postings — there is no public Handshake
-// API for a student-built app to pull live listings from.
+// UCSD's Handshake instance. Student postings live behind campus SSO, and
+// Handshake's EDU API is limited to Career Services partners at the institution
+// level, so this app cannot mirror postings or their dates. Instead of copying
+// stale listings, every tile below opens Handshake's own live search, which is
+// current by construction, and the alert steps point students at Handshake's
+// real "notify me about new jobs like this" feature.
 export const HANDSHAKE_URL = "https://ucsd.joinhandshake.com";
 export const HANDSHAKE_POSTINGS_URL = `${HANDSHAKE_URL}/stu/postings`;
+export const HANDSHAKE_ALERTS_HELP =
+  "https://support.joinhandshake.com/hc/en-us/articles/218693388-Saving-Job-Searches-and-Receiving-Job-Alerts";
 
-// Pre-fills the Handshake search box for a given query, best-effort.
+// Pre-fills the Handshake search box. If the parameter name ever changes, the
+// link still lands on the postings search, so it degrades to something correct.
 export function handshakeSearchUrl(query) {
   return `${HANDSHAKE_POSTINGS_URL}?query=${encodeURIComponent(query)}`;
 }
 
-// Illustrative campus job categories only — not live postings, and pay is
-// deliberately not shown here since a made-up number next to a real UCSD
-// department would read as a verified wage. Each card links out to a
-// Handshake search so students land on real, current openings to apply.
-export const SAMPLE_JOBS = [
+// Ways students actually narrow the campus job board. Each one is a live search,
+// not a snapshot, so a job posted a minute ago is already in the results.
+export const JOB_SEARCHES = [
   {
-    id: "hdh-front-desk",
-    title: "Front Desk Assistant",
-    employer: "Housing · Dining · Hospitality",
-    type: "Part-time · On-campus",
-    location: "Residence halls",
-    blurb:
-      "Greet residents, hand out packages, and answer questions at the front desk during evening and weekend shifts.",
+    id: "on-campus",
+    icon: "pin",
+    label: "On campus",
+    blurb: "Shifts you can walk to between classes.",
+    query: "on-campus",
   },
   {
-    id: "tlc-peer-mentor",
-    title: "Peer Research Mentor",
-    employer: "Teaching + Learning Commons",
-    type: "Part-time · Work-study preferred",
-    location: "Geisel Library",
-    blurb:
-      "Support fellow students with study strategies and research skills in drop-in and scheduled sessions.",
+    id: "part-time",
+    icon: "calendar",
+    label: "Part-time",
+    blurb: "Hours that fit around a full course load.",
+    query: "part-time",
   },
   {
-    id: "library-student-assistant",
-    title: "Library Student Assistant",
-    employer: "UC San Diego Library",
-    type: "Part-time · On-campus",
-    location: "Geisel Library",
-    blurb:
-      "Shelve returns, help at the circulation desk, and keep study spaces running smoothly.",
+    id: "work-study",
+    icon: "bag",
+    label: "Work-study",
+    blurb: "Roles that take your work-study award.",
+    query: "work study",
   },
   {
-    id: "athletics-marketing-intern",
-    title: "Marketing & Social Media Intern",
-    employer: "Triton Athletics",
-    type: "Internship · On-campus",
-    location: "RIMAC Arena",
-    blurb:
-      "Help plan game-day content and manage social posts for Triton Athletics events.",
+    id: "internships",
+    icon: "briefcase",
+    label: "Internships",
+    blurb: "Terms and summers that build the résumé.",
+    query: "internship",
   },
   {
-    id: "its-help-desk",
-    title: "IT Help Desk Student Assistant",
-    employer: "Educational Technology Services",
-    type: "Part-time · On-campus",
-    location: "Price Center",
-    blurb:
-      "Troubleshoot classroom tech and answer student IT questions in person and over chat.",
+    id: "research",
+    icon: "search",
+    label: "Research",
+    blurb: "Lab and assistant openings across campus.",
+    query: "research assistant",
   },
   {
-    id: "recreation-attendant",
-    title: "Recreation Facility Attendant",
-    employer: "Recreation · RIMAC & Canyonview",
-    type: "Part-time · On-campus",
-    location: "RIMAC / Canyonview",
-    blurb:
-      "Check in members, monitor the weight room and pool deck, and keep facilities running safely.",
+    id: "summer",
+    icon: "sparkle",
+    label: "Summer",
+    blurb: "Something lined up before the quarter ends.",
+    query: "summer",
   },
+];
+
+// Handshake's own alert flow, which is the only thing that can actually tell a
+// student the moment a new job appears. Steps mirror Handshake's help article.
+export const ALERT_STEPS = [
+  "Open Jobs on Handshake and filter for what you want.",
+  "In the banner above the results, choose “Notify me about new jobs like this.”",
+  "Open Manage notifications and name the search.",
+  "Pick email or text, and daily or weekly.",
 ];
