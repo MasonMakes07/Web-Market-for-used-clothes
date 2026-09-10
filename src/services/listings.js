@@ -149,7 +149,7 @@ export async function deleteListing(userId, id) {
   if (!supabase) throw new Error("Supabase client not initialized.");
   if (!userId) throw new Error("User ID is required to delete a listing.");
 
-  const { error, count } = await supabase
+  const { error } = await supabase
     .from("listings")
     .delete()
     .eq("id", id)

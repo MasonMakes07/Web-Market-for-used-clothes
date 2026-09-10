@@ -1,0 +1,6 @@
+{
+  "appId": "tech.tritonsthrift.app",
+  "appName": "Tritons Thrifts",
+  "webDir": "dist",
+  "ios": { "contentInset": "automatic", "backgroundColor": "#fdf6e9" }
+}
