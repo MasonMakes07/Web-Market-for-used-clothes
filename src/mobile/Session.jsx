@@ -1,10 +1,16 @@
+import { isAuthCallback } from "./nativeCallback.js";
+import { App } from "@capacitor/app";
+import { Browser } from "@capacitor/browser";
+import { isNative, authReturnUrl, openAuthUrl } from "./native.js";
 import { createContext, useContext, useState, useEffect } from "react";
 import { readOwnerPairing, checkOwnerPairing } from "./ownerScanner.js";
 import { Auth0Provider, useAuth0 } from "@auth0/auth0-react";
 
 const SessionContext = createContext(null);
 const domain = import.meta.env.VITE_AUTH0_DOMAIN;
-const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID;
+const clientId = isNative
+  ? import.meta.env.VITE_AUTH0_NATIVE_CLIENT_ID
+  : import.meta.env.VITE_AUTH0_CLIENT_ID;
 const audience = import.meta.env.VITE_AUTH0_AUDIENCE;
 const campusConnection = import.meta.env.VITE_UCSD_AUTH0_CONNECTION;
 const googleConnection =
@@ -16,6 +22,42 @@ const enabled = Boolean(domain && clientId);
 // Auth is optional for the local preview and required for every real scanner request.
 function AuthSession({ children }) {
   const auth = useAuth0();
+  const [nativeError, setNativeError] = useState(null);
+  const { handleRedirectCallback } = auth;
+  useEffect(() => {
+    if (!isNative) return;
+    let active = true;
+    let lastUrl = "";
+    async function handleUrl({ url }) {
+      if (!active || !url || url === lastUrl) return;
+      if (!isAuthCallback(url)) return;
+      const parsed = new URL(url);
+      lastUrl = url;
+      try {
+        if (
+          parsed.searchParams.has("state") &&
+          (parsed.searchParams.has("code") || parsed.searchParams.has("error"))
+        ) {
+          await handleRedirectCallback(url);
+        }
+      } catch {
+        if (active)
+          setNativeError(
+            new Error("Sign-in could not complete. Please try again."),
+          );
+      } finally {
+        await Browser.close().catch(() => {});
+      }
+    }
+    const listener = App.addListener("appUrlOpen", handleUrl);
+    App.getLaunchUrl()
+      .then((result) => result && handleUrl(result))
+      .catch(() => {});
+    return () => {
+      active = false;
+      listener.then((value) => value.remove());
+    };
+  }, [handleRedirectCallback]);
   return (
     <SessionContext.Provider
       value={{
@@ -30,6 +72,7 @@ function AuthSession({ children }) {
               new Error("This sign-in provider is not configured."),
             );
           return auth.loginWithRedirect({
+            openUrl: openAuthUrl,
             appState: { returnTo: "/profile" },
             authorizationParams: { connection },
           });
@@ -37,9 +80,10 @@ function AuthSession({ children }) {
         campusConfigured: Boolean(campusConnection),
         user: auth.user,
         loading: auth.isLoading,
-        error: auth.error,
+        error: nativeError || auth.error,
         login: () =>
           auth.loginWithRedirect({
+            openUrl: openAuthUrl,
             appState: { returnTo: "/sell" },
             authorizationParams: { connection: googleConnection },
           }),
@@ -49,6 +93,7 @@ function AuthSession({ children }) {
               new Error("UCSD sign-in is not connected yet."),
             );
           return auth.loginWithRedirect({
+            openUrl: openAuthUrl,
             appState: { returnTo: "/profile" },
             authorizationParams: { connection: campusConnection },
           });
@@ -56,7 +101,10 @@ function AuthSession({ children }) {
         token: () =>
           auth.getAccessTokenSilently({ authorizationParams: { audience } }),
         logout: () =>
-          auth.logout({ logoutParams: { returnTo: window.location.origin } }),
+          auth.logout({
+            openUrl: openAuthUrl,
+            logoutParams: { returnTo: authReturnUrl },
+          }),
       }}
     >
       {children}
@@ -118,7 +166,7 @@ export default function SessionProvider({ children }) {
     ) : (
       children
     );
-  if (!enabled || !window.isSecureContext)
+  if (!enabled || (!isNative && !window.isSecureContext))
     return (
       <SessionContext.Provider
         value={{
@@ -136,8 +184,9 @@ export default function SessionProvider({ children }) {
       domain={domain}
       clientId={clientId}
       authorizationParams={{
-        redirect_uri: window.location.origin,
+        redirect_uri: authReturnUrl,
         scope: "openid profile email",
+        ...(isNative && audience ? { audience } : {}),
       }}
       onRedirectCallback={(appState) => {
         // Accept only known internal tabs; never navigate to caller-supplied URLs.

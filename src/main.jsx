@@ -1,3 +1,4 @@
+import { Capacitor } from "@capacitor/core";
 import { StrictMode, Suspense, lazy } from "react";
 import { createRoot } from "react-dom/client";
 import Marketplace from "./mobile/Marketplace.jsx";
@@ -23,6 +24,7 @@ createRoot(document.getElementById("root")).render(
 // Only production HTTPS builds register the offline fallback worker.
 if (
   import.meta.env.PROD &&
+  !Capacitor.isNativePlatform() &&
   "serviceWorker" in navigator &&
   window.isSecureContext
 ) {
